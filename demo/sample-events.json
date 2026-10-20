@@ -1,0 +1,9 @@
+{
+  "source": "synthetic_not_amazon_or_ring",
+  "warning": "All data fictional; no real employee, customer, or warehouse footage",
+  "session": {"id": "DEMO-SESSION", "camera_id": "CAM-027", "scanner_id": "SCANNER-027", "facility_id": "SIM-HUB"},
+  "scan_events": [
+    {"id": "SCAN-1", "package_id": "SIM-1001", "scanned_at": "2026-10-20T10:00:00Z", "event_type": "received"},
+    {"id": "SCAN-2", "package_id": "SIM-1002", "scanned_at": "2026-10-20T10:02:00Z", "event_type": "sorted"}
+  ]
+}
