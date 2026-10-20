@@ -1,0 +1,49 @@
+openapi: 3.0.3
+info:
+  title: Ring Guardian — Package P.I. evidence request contract
+  version: 0.1.0
+  description: Planned authenticated service-to-service contract; not yet deployed.
+servers:
+  - url: https://guardian.example.invalid
+paths:
+  /v1/evidence-requests:
+    post:
+      summary: Request footage review for verified shipment ownership
+      security:
+        - serviceAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [package_id, owner_verification_token]
+              properties:
+                package_id:
+                  type: string
+                owner_verification_token:
+                  type: string
+      responses:
+        '202':
+          description: Request queued for authorized review
+        '403':
+          description: Shipment ownership or service authorization rejected
+  /v1/evidence-requests/{request_id}:
+    get:
+      summary: Obtain review status or an approved redacted summary
+      security:
+        - serviceAuth: []
+      parameters:
+        - name: request_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Review status; never returns raw footage by default
+components:
+  securitySchemes:
+    serviceAuth:
+      type: http
+      scheme: bearer
