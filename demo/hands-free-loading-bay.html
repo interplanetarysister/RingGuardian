@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ring Guardian | Hands-Free Bay Preview</title>
+<style>
+:root{font-family:system-ui,Arial,sans-serif;color:#e8f0fa;background:#091120}*{box-sizing:border-box}body{margin:0}main{max-width:1240px;margin:auto;padding:20px}h1{margin:8px 0}h2{font-size:1.05rem;margin:0 0 12px}.sub,.muted{color:#a9bdd7}.sub{margin:2px 0 18px}header,.actions,.flex{display:flex;gap:10px;align-items:center;flex-wrap:wrap}header{justify-content:space-between}.panel{background:#142238;border:1px solid #33465c;border-radius:16px;padding:16px;margin:12px 0}button{cursor:pointer;color:#f6fbff;background:#23569a;border:1px solid #5288c5;border-radius:9px;padding:10px 14px;font-weight:650}button:focus-visible{outline:3px solid #ffe08a}button:disabled{opacity:.5}.layout{display:grid;grid-template-columns:1.4fr 1fr;gap:14px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.worker{background:#0e1a2c;border:1px solid #40516a;border-radius:10px;padding:12px}.worker.live{border-color:#38caac}.pill{display:inline-block;border-radius:99px;padding:3px 8px;background:#344154;font-size:.78rem}.good{color:#62e9c2}.warn{color:#ffd07a}.bad{color:#ff8e8e}.track{height:11px;background:#354456;border-radius:9px;overflow:hidden;margin:8px 0}.fill{height:100%;background:#68c9ee;transition:width .5s}.package{border-bottom:1px solid #35465a;padding:9px 0}.package:last-child{border:0}.pkghead{display:flex;justify-content:space-between;gap:8px;align-items:center}.small{font-size:.84rem}.stage{min-height:180px;border:1px dashed #58708c;background:radial-gradient(circle at 45% 35%,#1b3d59,#0c1728 68%);border-radius:12px;position:relative;overflow:hidden;padding:14px}.truck{position:absolute;right:8%;bottom:21%;border:2px solid #85b9d9;border-radius:7px;padding:20px 18px;color:#b9daf1}.bay{position:absolute;left:5%;bottom:17%;width:36%;height:60%;border:3px solid #5f819c;border-bottom:0;border-radius:5px}.avatar{position:absolute;bottom:12%;font-size:28px;transition:left .45s}.badge{position:absolute;top:8px;right:9px;background:#1d4558;padding:5px 8px;border-radius:6px}.event{margin:0;padding:8px;border-left:2px solid #527ca1;border-bottom:1px solid #304052;font-size:.88rem}.event time{color:#aac9e4;margin-right:8px}.feed{height:230px;overflow-y:auto}select{color:white;background:#243b57;border:1px solid #6784a0;border-radius:7px;padding:8px;max-width:100%}.review{padding:11px;border:1px solid #55647a;border-radius:10px;margin:10px 0}.evidence{background:#0b1627;border:1px dashed #5e738c;border-radius:8px;padding:12px;margin-top:8px;font-size:.87rem}.footer{color:#aebbd1;font-size:.83rem}.tag{font-weight:700;color:#c7ebff}@media(max-width:850px){.layout{grid-template-columns:1fr}.grid{grid-template-columns:1fr 1fr}}@media(max-width:480px){.grid{grid-template-columns:1fr}}
+</style></head><body><main>
+<header><div><div class="pill">SYNTHETIC DEMO • NOT CONNECTED TO LIVE RING OR SCANNERS</div><h1>Ring Guardian: Hands-Free Bay Verification</h1><p class="sub">See worker camera activation, package scan progress, routing checks, and evidence triage.</p></div><div class="actions"><button id="start">Play loading shift</button><button id="pause" disabled>Pause</button><button id="reset">Reset</button></div></header>
+<section class="layout"><div>
+<div class="panel"><h2>Loading bay — animated operational view</h2><div class="stage" aria-label="Illustrated loading bay with arriving workers and assigned truck"><div class="bay"></div><div class="truck">TRUCK T-204<br><small>Route North</small></div><div id="avatars"></div><span class="badge" id="stageLabel">Awaiting shift start</span></div><div class="grid" id="workers" style="margin-top:12px"></div></div>
+<div class="panel"><h2>Package scanner progress</h2><div id="packages"></div></div>
+<div class="panel"><h2>Facility event feed</h2><div class="feed" id="events" aria-live="polite"></div></div>
+</div><div>
+<div class="panel"><h2>Shift verification</h2><div class="grid"><div><div class="muted small">Workers online</div><strong id="online">0 / 3</strong></div><div><div class="muted small">Official scans complete</div><strong id="scans">0 / 5</strong></div><div><div class="muted small">Open exceptions</div><strong id="exceptions">0</strong></div><div><div class="muted small">Video observations</div><strong id="observations">0</strong></div></div></div>
+<div class="panel"><h2>Questionable loading recordings</h2><div id="reviews" class="muted">Exceptions will appear here, with associated synthetic camera observations and review actions.</div></div>
+<div class="panel"><h2>Trace package</h2><label for="pick" class="small">Tracking ID</label> <select id="pick"></select><div id="trace" style="margin-top:12px"></div></div>
+<div class="panel"><h2>Investigation policy</h2><p class="small">Scanner completion is authoritative. Visual package detection is only supporting evidence. Missing video is <em>unknown</em>, not proof that an item was absent. All exceptions require an authorized reviewer before any conclusion or escalation.</p><p class="small">Evidence cards are generated from synthetic fixture events. There are no actual recorded clips in this prototype. A production system requires authorized capture, protected storage, redaction, access logs, retention controls, and verified Ring integration.</p></div>
+</div></section><p class="footer">Standalone offline sample. All packages, workers, scans, observations, and timeline events are invented test records.</p>
+</main><script>
+const workers=[{id:'W-12',name:'Alex',camera:'CAM-A'},{id:'W-27',name:'Sam',camera:'CAM-B'},{id:'W-38',name:'Jo',camera:'CAM-C'}];
+const initial=[
+{id:'PKG-101',destination:'North Hub',truck:'T-204',origin:'Drop-off A',inbound:'IN-901',scan:0,visual:'unknown',state:'pending',worker:'W-12'},
+{id:'PKG-102',destination:'North Hub',truck:'T-204',origin:'Drop-off A',inbound:'IN-901',scan:0,visual:'unknown',state:'pending',worker:'W-27'},
+{id:'PKG-103',destination:'South Hub',truck:'T-208',origin:'Drop-off B',inbound:'IN-876',scan:0,visual:'unknown',state:'pending',worker:'W-12'},
+{id:'PKG-104',destination:'North Hub',truck:'T-204',origin:'Drop-off C',inbound:'IN-932',scan:0,visual:'unknown',state:'pending',worker:'W-38'},
+{id:'PKG-105',destination:'North Hub',truck:'T-204',origin:'Drop-off C',inbound:'IN-932',scan:0,visual:'unknown',state:'pending',worker:'W-27'}];
+const steps=[
+{type:'enter',worker:0,msg:'Alex enters loading bay; CAM-A activates.'},
+{type:'enter',worker:1,msg:'Sam enters loading bay; CAM-B activates.'},
+{type:'enter',worker:2,msg:'Jo enters loading bay; CAM-C activates.'},
+{type:'scan',id:'PKG-101',value:35,msg:'PKG-101 scanner in progress (35%).'},
+{type:'scan',id:'PKG-101',value:100,msg:'PKG-101 official scanner confirms 100%.'},
+{type:'visual',id:'PKG-101',value:'loaded',camera:'CAM-A',msg:'CAM-A observes PKG-101 loading into T-204.'},
+{type:'scan',id:'PKG-102',value:62,msg:'PKG-102 scanner interrupted at 62%.'},
+{type:'visual',id:'PKG-102',value:'loaded',camera:'CAM-B',msg:'CAM-B observes PKG-102 loading; scan incomplete.'},
+{type:'visual',id:'PKG-103',value:'loaded',camera:'CAM-A',msg:'CAM-A observes PKG-103 in T-204; expected T-208.'},
+{type:'scan',id:'PKG-104',value:100,msg:'PKG-104 official scan complete at 100%.'},
+{type:'visual',id:'PKG-104',value:'not-observed',camera:'CAM-C',msg:'No usable bay footage correlates PKG-104 to truck loading.'},
+{type:'scan',id:'PKG-105',value:100,msg:'PKG-105 official scan complete at 100%.'},
+{type:'visual',id:'PKG-105',value:'loaded',camera:'CAM-B',msg:'CAM-B observes PKG-105 loaded into T-204.'}
+];
+let packages=[],online=new Set(),events=[],reviews=[],index=0,timer=null,selected='PKG-101';const $=id=>document.getElementById(id);
+function safe(t){return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function status(p){if(p.visual==='loaded'&&p.scan<100)return ['bad','Unscanned / incomplete load'];if(p.visual==='loaded'&&p.truck!=='T-204')return ['bad','Wrong truck observed'];if(p.scan===100&&p.visual==='not-observed')return ['warn','Loading not confirmed'];if(p.scan===100&&p.visual==='loaded')return ['good','Scan + loading corroborated'];if(p.scan>0&&p.scan<100)return ['warn','Partial scan'];return ['muted','Pending / insufficient evidence'];}
+function addReview(p,reason,camera){if(reviews.some(r=>r.id===p.id))return;reviews.push({id:p.id,reason,camera:camera||'none',decision:'awaiting review',step:index});}
+function render(){
+$('workers').innerHTML=workers.map(w=>'<div class="worker '+(online.has(w.id)?'live':'')+'"><strong>'+safe(w.name)+' · '+w.id+'</strong><div class="small">'+safe(w.camera)+' · <span class="'+(online.has(w.id)?'good':'muted')+'">'+(online.has(w.id)?'Camera ON / active':'Camera OFF / outside bay')+'</span></div></div>').join('');
+$('avatars').innerHTML=workers.filter(w=>online.has(w.id)).map((w,i)=>'<div class="avatar" style="left:'+(11+18*i)+'%" aria-label="'+safe(w.name)+' has entered">👷<span class="small good">●</span></div>').join('');
+$('online').textContent=online.size+' / 3';$('scans').textContent=packages.filter(p=>p.scan===100).length+' / 5';$('exceptions').textContent=reviews.filter(r=>r.decision==='awaiting review').length;$('observations').textContent=packages.filter(p=>p.visual!=='unknown').length;
+$('packages').innerHTML=packages.map(p=>{const s=status(p);return '<div class="package"><div class="pkghead"><strong>'+p.id+'</strong><span class="small '+s[0]+'">'+s[1]+'</span></div><div class="small muted">'+p.destination+' · expected '+p.truck+' · '+p.worker+'</div><div class="track" role="progressbar" aria-label="'+p.id+' official scan" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+p.scan+'"><div class="fill" style="width:'+p.scan+'%"></div></div><div class="small">'+p.scan+'% scanner complete · camera: '+safe(p.visual)+'</div></div>';}).join('');
+$('events').innerHTML=events.slice().reverse().map(e=>'<div class="event"><time>'+e.time+'</time>'+safe(e.message)+'</div>').join('')||'<div class="event muted">Shift has not started.</div>';
+$('reviews').innerHTML=reviews.length?reviews.map(r=>'<div class="review"><strong class="bad">'+r.id+' · '+safe(r.reason)+'</strong><div class="small muted">Source: '+safe(r.camera)+' · '+safe(r.decision)+'</div><div class="evidence">Synthetic evidence reference: EVENT-'+String(r.step).padStart(3,'0')+'<div class="muted">Camera observation metadata only; no actual playable clip is available.</div></div><div class="actions" style="margin-top:8px"><button data-review="'+r.id+'" data-choice="reviewed">Mark reviewed</button><button data-review="'+r.id+'" data-choice="needs follow-up">Needs follow-up</button></div></div>').join(''):'<p class="muted">No exceptions yet.</p>';
+const p=packages.find(x=>x.id===selected)||packages[0],s=status(p);
+$('trace').innerHTML='<strong class="'+s[0]+'">'+safe(s[1])+'</strong><p class="small">Expected route: '+safe(p.origin)+' → inbound '+safe(p.inbound)+' → bay → '+safe(p.truck)+' → '+safe(p.destination)+'</p><p class="small">Last documented upstream handoff: '+safe(p.origin)+' to '+safe(p.inbound)+'. Bay scanner: '+p.scan+'%. Camera observation: '+safe(p.visual)+'.</p><p class="small muted">Next check: review inbound truck unload records, drop-off handoff, and relevant authorized camera material. Absence of detection cannot establish physical absence.</p>';
+$('stageLabel').textContent=index>=steps.length?'Shift sequence complete':online.size?'Workers active · loading in progress':'Awaiting shift start';
+$('start').disabled=!!timer||index>=steps.length;$('pause').disabled=!timer;
+}
+function advance(){if(index>=steps.length){pause();render();return;}const step=steps[index++];const p=packages.find(x=>x.id===step.id);
+if(step.type==='enter')online.add(workers[step.worker].id);
+if(step.type==='scan')p.scan=step.value;
+if(step.type==='visual'){p.visual=step.value;if(step.value==='loaded'&&p.scan<100)addReview(p,'Package moved without full scan',step.camera);else if(step.value==='loaded'&&p.truck!=='T-204')addReview(p,'Observed in unexpected truck',step.camera);else if(step.value==='not-observed')addReview(p,'No corroborating loading footage',step.camera);}
+events.push({time:'T+'+String(index*4).padStart(2,'0')+'s',message:step.msg});render();if(index>=steps.length)pause();}
+function pause(){clearInterval(timer);timer=null;render();}
+function play(){if(timer||index>=steps.length)return;advance();if(index<steps.length)timer=setInterval(advance,1250);render();}
+function reset(){clearInterval(timer);timer=null;packages=initial.map(p=>({...p}));online=new Set();events=[];reviews=[];index=0;render();}
+$('start').addEventListener('click',play);$('pause').addEventListener('click',pause);$('reset').addEventListener('click',reset);
+$('pick').innerHTML=initial.map(p=>'<option value="'+p.id+'">'+p.id+'</option>').join('');$('pick').addEventListener('change',e=>{selected=e.target.value;render();});
+$('reviews').addEventListener('click',e=>{const b=e.target.closest('[data-review]');if(!b)return;const r=reviews.find(x=>x.id===b.dataset.review);if(r){r.decision=b.dataset.choice;events.push({time:'T+'+String(index*4).padStart(2,'0')+'s',message:r.id+' marked '+r.decision+' by demo reviewer.'});render();}});
+reset();
+</script></body></html>
