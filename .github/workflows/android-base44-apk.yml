@@ -1,0 +1,33 @@
+name: Build Remotebetrayal Ring Guardian APK
+on:
+  workflow_dispatch:
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Verify Base44 origin configuration
+        env:
+          BASE44_REMOTE_BETRAYAL_URL: ${{ vars.BASE44_REMOTE_BETRAYAL_URL }}
+        run: |
+          python3 scripts/check-base44-target.py
+          echo "BASE44_URL=$BASE44_REMOTE_BETRAYAL_URL" >> "$GITHUB_ENV"
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Build Android debug APK
+        working-directory: android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RingGuardian-Remotebetrayal-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
