@@ -21,11 +21,11 @@ jobs:
           echo "BASE44_URL=$BASE44_REMOTE_BETRAYAL_URL" >> "$GITHUB_ENV"
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
       - name: Build Android debug APK
         working-directory: android
-        run: |
-          chmod +x ./gradlew
-          ./gradlew assembleDebug
+        run: gradle assembleDebug
       - uses: actions/upload-artifact@v4
         with:
           name: RingGuardian-Remotebetrayal-debug-apk
