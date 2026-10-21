@@ -1,0 +1,46 @@
+{
+  "name": "Employee",
+  "type": "object",
+  "properties": {
+    "demo_session_id": {
+      "type": "string"
+    },
+    "employee_id": {
+      "type": "string"
+    },
+    "full_name": {
+      "type": "string"
+    },
+    "initials": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string"
+    },
+    "badge_id": {
+      "type": "string"
+    },
+    "facility": {
+      "type": "string"
+    },
+    "shift": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "on_shift",
+        "off_shift",
+        "break"
+      ],
+      "default": "on_shift"
+    },
+    "accent_hue": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "employee_id",
+    "full_name"
+  ]
+}

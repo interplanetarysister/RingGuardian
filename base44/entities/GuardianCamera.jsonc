@@ -1,0 +1,66 @@
+{
+  "name": "GuardianCamera",
+  "type": "object",
+  "properties": {
+    "demo_session_id": {
+      "type": "string"
+    },
+    "device_id": {
+      "type": "string"
+    },
+    "model": {
+      "type": "string"
+    },
+    "assigned_employee_id": {
+      "type": "string"
+    },
+    "facility": {
+      "type": "string"
+    },
+    "mount_position": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "online",
+        "offline",
+        "degraded",
+        "unassigned"
+      ],
+      "default": "online"
+    },
+    "battery_pct": {
+      "type": "number"
+    },
+    "firmware": {
+      "type": "string"
+    },
+    "last_sync_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "stream_label": {
+      "type": "string"
+    },
+    "ring_device_id": {
+      "type": "string"
+    },
+    "ring_linked": {
+      "type": "boolean",
+      "default": false
+    },
+    "provenance": {
+      "type": "string",
+      "enum": [
+        "proposed_hardware_simulated",
+        "ring_simulator",
+        "ring_live"
+      ],
+      "default": "proposed_hardware_simulated"
+    }
+  },
+  "required": [
+    "device_id"
+  ]
+}

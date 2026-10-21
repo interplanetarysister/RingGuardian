@@ -1,0 +1,102 @@
+{
+  "name": "ScanEvent",
+  "type": "object",
+  "properties": {
+    "demo_session_id": {
+      "type": "string"
+    },
+    "tracking_number": {
+      "type": "string"
+    },
+    "scenario_key": {
+      "type": "string"
+    },
+    "sequence": {
+      "type": "number"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "receiving",
+        "sorting",
+        "loading",
+        "departure",
+        "arrival",
+        "delivery",
+        "handling",
+        "verification",
+        "corrective",
+        "exception"
+      ]
+    },
+    "event_label": {
+      "type": "string"
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "scanner_id": {
+      "type": "string"
+    },
+    "camera_id": {
+      "type": "string"
+    },
+    "employee_id": {
+      "type": "string"
+    },
+    "facility": {
+      "type": "string"
+    },
+    "vehicle": {
+      "type": "string"
+    },
+    "scan_status": {
+      "type": "string",
+      "enum": [
+        "confirmed",
+        "failed",
+        "unconfirmed",
+        "delayed",
+        "missed"
+      ],
+      "default": "confirmed"
+    },
+    "sync_status": {
+      "type": "string",
+      "enum": [
+        "matched",
+        "missing_footage",
+        "ambiguous",
+        "incorrect_camera",
+        "delayed",
+        "pending",
+        "rejected"
+      ],
+      "default": "pending"
+    },
+    "sync_note": {
+      "type": "string"
+    },
+    "video_clip_key": {
+      "type": "string"
+    },
+    "playback_position_seconds": {
+      "type": "number"
+    },
+    "evidence_source": {
+      "type": "string"
+    },
+    "case_number": {
+      "type": "string"
+    },
+    "note": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "tracking_number",
+    "event_type",
+    "occurred_at"
+  ]
+}

@@ -1,0 +1,18 @@
+export const TOUR_STEPS=[
+ {title:'From order to doorstep',path:'/',target:'h1',say:'An order becomes a shipment. It is received, sorted, loaded and delivered. Tracking updates describe those milestones, but often leave gaps between them.',event:'continue'},
+ {title:'When a delivery is uncertain',path:'/',target:'h1',say:'A package can be marked delivered while the customer sees an empty porch. A warehouse scan can succeed while the parcel goes to the wrong truck. We need to see what the records support and what remains unknown.',event:'continue'},
+ {title:'Welcome to Ring Guardian',path:'/',target:'a[href="/live-events"]',say:'Ring Guardian links a package scan to the seconds of camera evidence around it. Look for Simulated live events on the home page and open it.',event:'live-open'},
+ {title:'Watch a delivery event',path:'/live-events',target:'[data-tour="live-start"]',say:'Choose a package scenario near the top. Press Start live simulation. Watch the camera scene and the timestamped events.',event:'live-start'},
+ {title:'Save the matching evidence',path:'/live-events',target:'[data-tour="live-report"]',say:'Watch until the event finishes. Below the scene, press Save evidence and open recovery steps. The report uses the same package, scene and timestamps.',event:'live-saved'},
+ {title:'Keep the evidence report',path:'/live-events',target:'[data-tour="live-report"]',say:'In What to do next, download the evidence report. It contains the simulated camera interval and its event timeline. The support link opens the real carrier website; it does not submit a claim.',event:'report-export'},
+ {title:'Recover a misrouted parcel',path:'/packages/TBA304711915063',target:'main',say:'Open the wrong-truck package. Review its evidence, then find Investigator actions and perform Corrective recovery. The package and case update together.',action:'correctiveRecovery'},
+ {title:'See hands-free scanning',path:'/ai-tracking',target:'[data-tour="ai-start"]',say:'Press Run AI tracking demo. Watch the worker enter and the camera turn on. Red is unconfirmed. Yellow is held. Green requires a scanner confirmation. A partial scan stays unconfirmed.',action:'runAiTracking'},
+ {title:'Review an evidence request',path:'/interop',target:'main',say:'In Package P.I., review a pending request and approve or reject it. Only an approved summary or sample can be released. Real private footage needs its own authorization.',action:'gateway'},
+ {title:'Explore your console',path:'/dashboard',target:'main',say:'Your walkthrough is complete. Open packages, cameras, scanners or cases whenever you need them. The demonstration uses fictional records. Live Ring and Alexa services require verified account setup.',event:'finish'}
+];
+export function tourEvent(name,detail={}){window.dispatchEvent(new CustomEvent('rgc-tour',{detail:{name,...detail}}));}
+export function startTour(){tourEvent('start');}
+export function downloadTour(){
+ const content={version:'ring-guardian.walkthrough.v1',voice_mode:'Browser speech simulation; not the Alexa device voice',invocation_name:'ring guardian',steps:TOUR_STEPS.map(({title,say,path,event,action})=>({title,speech:say,web_path:path,completion:event||action})),alexa:{type:'custom-skill',note:'Import these content steps into an authorized Alexa handler. A Flash Briefing feed cannot observe web clicks. Pair the web session before exposing private information.',intents:['AMAZON.NextIntent','AMAZON.PreviousIntent','AMAZON.RepeatIntent','AMAZON.StopIntent']}};
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(content,null,2)],{type:'application/json'}));a.download='ring-guardian-alexa-walkthrough.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}

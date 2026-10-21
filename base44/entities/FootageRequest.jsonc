@@ -1,0 +1,67 @@
+{
+  "name": "FootageRequest",
+  "type": "object",
+  "properties": {
+    "demo_session_id": {
+      "type": "string"
+    },
+    "request_id": {
+      "type": "string"
+    },
+    "requester_system": {
+      "type": "string"
+    },
+    "tracking_number": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "delivered"
+      ],
+      "default": "pending"
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "decided_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reviewer": {
+      "type": "string"
+    },
+    "scope": {
+      "type": "string"
+    },
+    "justification": {
+      "type": "string"
+    },
+    "api_version": {
+      "type": "string"
+    },
+    "idempotency_key": {
+      "type": "string"
+    },
+    "redaction_level": {
+      "type": "string"
+    },
+    "response_summary": {
+      "type": "string"
+    },
+    "decision_note": {
+      "type": "string"
+    },
+    "delivered_clip_key": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "tracking_number"
+  ]
+}

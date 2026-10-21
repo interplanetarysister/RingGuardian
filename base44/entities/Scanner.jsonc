@@ -1,0 +1,63 @@
+{
+  "name": "Scanner",
+  "type": "object",
+  "properties": {
+    "demo_session_id": {
+      "type": "string"
+    },
+    "device_id": {
+      "type": "string"
+    },
+    "model": {
+      "type": "string"
+    },
+    "assigned_employee_id": {
+      "type": "string"
+    },
+    "facility": {
+      "type": "string"
+    },
+    "connection_status": {
+      "type": "string",
+      "enum": [
+        "connected",
+        "disconnected",
+        "error",
+        "pairing"
+      ],
+      "default": "connected"
+    },
+    "connection_type": {
+      "type": "string"
+    },
+    "session_status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "idle",
+        "ended"
+      ],
+      "default": "active"
+    },
+    "paired_camera_id": {
+      "type": "string"
+    },
+    "last_scan_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "battery_pct": {
+      "type": "number"
+    },
+    "assignment_mismatch": {
+      "type": "boolean",
+      "default": false
+    },
+    "diagnostic_note": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "device_id"
+  ]
+}

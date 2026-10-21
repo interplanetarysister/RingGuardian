@@ -1,0 +1,45 @@
+{
+  "name": "ActivityLog",
+  "type": "object",
+  "properties": {
+    "demo_session_id": {
+      "type": "string"
+    },
+    "actor": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string"
+    },
+    "entity_type": {
+      "type": "string"
+    },
+    "entity_ref": {
+      "type": "string"
+    },
+    "detail": {
+      "type": "string"
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "notice",
+        "warning",
+        "critical"
+      ],
+      "default": "info"
+    },
+    "category": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "action",
+    "occurred_at"
+  ]
+}

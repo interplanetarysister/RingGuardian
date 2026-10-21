@@ -1,0 +1,48 @@
+{
+  "name": "Vehicle",
+  "type": "object",
+  "properties": {
+    "demo_session_id": {
+      "type": "string"
+    },
+    "truck_id": {
+      "type": "string"
+    },
+    "trailer_number": {
+      "type": "string"
+    },
+    "route_code": {
+      "type": "string"
+    },
+    "driver_employee_id": {
+      "type": "string"
+    },
+    "facility": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "loading",
+        "departed",
+        "in_transit",
+        "arrived",
+        "held"
+      ],
+      "default": "loading"
+    },
+    "departed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "route_description": {
+      "type": "string"
+    },
+    "last_dock_door": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "truck_id"
+  ]
+}

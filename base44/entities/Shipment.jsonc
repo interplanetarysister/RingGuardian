@@ -1,0 +1,108 @@
+{
+  "name": "Shipment",
+  "type": "object",
+  "properties": {
+    "demo_session_id": {
+      "type": "string"
+    },
+    "tracking_number": {
+      "type": "string"
+    },
+    "scenario_key": {
+      "type": "string"
+    },
+    "scenario_title": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "in_transit",
+        "out_for_delivery",
+        "delivered_received",
+        "delivered_no_receipt",
+        "misrouted",
+        "missing",
+        "recovered",
+        "scan_exception"
+      ],
+      "default": "in_transit"
+    },
+    "recipient_name": {
+      "type": "string"
+    },
+    "destination_city": {
+      "type": "string"
+    },
+    "origin_facility": {
+      "type": "string"
+    },
+    "current_facility": {
+      "type": "string"
+    },
+    "last_known_location": {
+      "type": "string"
+    },
+    "expected_destination": {
+      "type": "string"
+    },
+    "last_verified_scan_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "promised_date": {
+      "type": "string"
+    },
+    "delivered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "weight_lb": {
+      "type": "number"
+    },
+    "dimensions": {
+      "type": "string"
+    },
+    "declared_value_usd": {
+      "type": "number"
+    },
+    "contents_summary": {
+      "type": "string"
+    },
+    "discrepancy_flag": {
+      "type": "boolean",
+      "default": false
+    },
+    "discrepancy_reason": {
+      "type": "string"
+    },
+    "investigation_status": {
+      "type": "string",
+      "enum": [
+        "none",
+        "open",
+        "investigating",
+        "resolved",
+        "closed"
+      ],
+      "default": "none"
+    },
+    "evidence_status": {
+      "type": "string",
+      "enum": [
+        "available",
+        "partial",
+        "missing",
+        "not_applicable"
+      ],
+      "default": "available"
+    },
+    "scenario_summary": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "tracking_number",
+    "scenario_key"
+  ]
+}

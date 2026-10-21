@@ -1,0 +1,60 @@
+{
+  "name": "AiObservation",
+  "type": "object",
+  "properties": {
+    "demo_session_id": {
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "tracking_number": {
+      "type": "string"
+    },
+    "object_id": {
+      "type": "string"
+    },
+    "pallet_slot": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "RED",
+        "YELLOW",
+        "GREEN"
+      ],
+      "default": "RED"
+    },
+    "confidence": {
+      "type": "number"
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "elapsed_ms": {
+      "type": "number"
+    },
+    "barcode_read": {
+      "type": "string"
+    },
+    "barcode_confidence": {
+      "type": "number"
+    },
+    "camera_id": {
+      "type": "string"
+    },
+    "note": {
+      "type": "string"
+    },
+    "stage": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "run_id",
+    "tracking_number",
+    "state"
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "name": "VideoClip",
+  "type": "object",
+  "properties": {
+    "demo_session_id": {
+      "type": "string"
+    },
+    "clip_key": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "clip_url": {
+      "type": "string"
+    },
+    "evidence_kind": {
+      "type": "string",
+      "enum": [
+        "scene_reconstruction",
+        "video_file",
+        "ring_clip"
+      ],
+      "default": "scene_reconstruction"
+    },
+    "scene": {
+      "type": "string"
+    },
+    "source_label": {
+      "type": "string"
+    },
+    "device_attribution": {
+      "type": "string"
+    },
+    "camera_id": {
+      "type": "string"
+    },
+    "facility": {
+      "type": "string"
+    },
+    "scenario_key": {
+      "type": "string"
+    },
+    "recorded_start": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "recorded_end": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "duration_seconds": {
+      "type": "number"
+    },
+    "description": {
+      "type": "string"
+    },
+    "generated_sample": {
+      "type": "boolean",
+      "default": true
+    },
+    "uploaded": {
+      "type": "boolean",
+      "default": false
+    },
+    "hue": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "clip_key",
+    "title"
+  ]
+}
