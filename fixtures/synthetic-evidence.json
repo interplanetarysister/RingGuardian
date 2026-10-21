@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "mode": "simulation",
+  "source": "synthetic_not_amazon",
+  "description": "Fictional Ring Guardian camera/scanner correlation event for offline demonstration. Not a Ring API or AWS event.",
+  "events": [
+    {
+      "id": "SIM-EVIDENCE-1001",
+      "trackingId": "SIM-1001",
+      "cameraId": "SIM-CAMERA-1",
+      "facilityId": "SIM-HUB-A",
+      "truckId": "SIM-TRUCK-12",
+      "eventType": "mock_motion_detected",
+      "timestamp": "2026-10-20T10:00:00Z",
+      "correlationStatus": "review_required",
+      "videoAvailable": false,
+      "ringEventVerified": false
+    },
+    {
+      "id": "SIM-EVIDENCE-1004",
+      "trackingId": "SIM-1004",
+      "cameraId": "SIM-CAMERA-2",
+      "facilityId": "SIM-HUB-A",
+      "truckId": "SIM-TRUCK-12",
+      "eventType": "mock_evidence_requested",
+      "timestamp": "2026-10-20T11:00:00Z",
+      "correlationStatus": "pending_permission",
+      "videoAvailable": false,
+      "ringEventVerified": false
+    }
+  ]
+}
