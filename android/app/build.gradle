@@ -1,0 +1,15 @@
+plugins { id 'com.android.application' }
+android {
+ namespace 'com.ringguardian.demo'
+ compileSdk 35
+ defaultConfig {
+   applicationId 'com.ringguardian.demo'
+   minSdk 24
+   targetSdk 35
+   versionCode 1
+   versionName '0.1.0'
+   def base44Url = System.getenv('BASE44_URL') ?: ''
+   buildConfigField 'String', 'BASE44_URL', '"' + base44Url.replace('\\', '\\\\').replace('"', '\\"') + '"'
+ }
+ buildFeatures { buildConfig true }
+}
