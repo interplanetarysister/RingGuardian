@@ -1,17 +1,26 @@
 {
-  "project": "Ring Guardian Cam",
+  "project": "Ring Guardian Cam — Unrewound",
   "source": {
     "provider": "Base44",
-    "workspace": "Remotebetrayal",
-    "app_id": "6ad7c4efe2e263ca14eb9767",
-    "deployment_url": null
+    "workspace": "Unrewound",
+    "app_id": "6ad9406e7da53afe29334379",
+    "deployment_url": null,
+    "origin": {
+      "workspace": "Remotebetrayal",
+      "app_id": "6ad7c4efe2e263ca14eb9767"
+    }
   },
   "policy": {
-    "canonical_source": "Remotebetrayal Base44 app",
-    "unrewound_is_target": false,
+    "canonical_source": "Unrewound-owned Ring Guardian Cam — Unrewound Base44 app",
+    "unrewound_is_target": true,
     "allow_prototype_fallback": false,
     "require_source_verification_before_apk": true,
-    "require_build_commit_provenance": true
+    "require_build_commit_provenance": true,
+    "do_not_delete_duplicates_until_feature_parity_and_backup_verified": true
   },
-  "status": "source identity selected; source export, deployed URL and APK not yet verified"
+  "other_unrewound_apps_to_reconcile": [
+    "6ad7fb6d4d4fa1ca2adeef66",
+    "6ad7fea1809ca262a1e48497"
+  ],
+  "status": "Canonical ownership target identified on 2026-10-21. Target already has reconstructed features; GitHub source code parity and remaining feature comparison have NOT been verified. Do not claim this repository mirrors the Base44 target or delete other versions."
 }
