@@ -1,0 +1,17 @@
+{
+  "project": "Ring Guardian Cam",
+  "source": {
+    "provider": "Base44",
+    "workspace": "Remotebetrayal",
+    "app_id": "6ad7c4efe2e263ca14eb9767",
+    "deployment_url": null
+  },
+  "policy": {
+    "canonical_source": "Remotebetrayal Base44 app",
+    "unrewound_is_target": false,
+    "allow_prototype_fallback": false,
+    "require_source_verification_before_apk": true,
+    "require_build_commit_provenance": true
+  },
+  "status": "source identity selected; source export, deployed URL and APK not yet verified"
+}
