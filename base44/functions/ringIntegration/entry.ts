@@ -43,7 +43,7 @@ function credentials() {
     clientId: readSecret('RING_CLIENT_ID'),
     clientSecret: readSecret('RING_CLIENT_SECRET'),
     refreshToken: readSecret('RING_REFRESH_TOKEN'),
-    playgroundToken: readSecret('RING_PLAYGROUND_TOKEN'),
+    playgroundToken: readSecret('RING_PLAYGROUND_TOKEN') || readSecret('RING_ACCESS_TOKEN'),
     hmacKey: readSecret('RING_HMAC_KEY'),
     apiBase: readSecret('RING_API_BASE') || DEFAULT_API_BASE
   };
@@ -73,7 +73,7 @@ async function exchangeRefreshToken(creds) {
 
 async function ringGet(creds, path, accessToken) {
   const res = await fetch(creds.apiBase + path, {
-    headers: { Authorization: 'Bearer ' + accessToken, Accept: 'application/vnd.api+json' },
+    headers: { Authorization: 'Bearer ' + accessToken, Accept: 'application/json' },
     signal: AbortSignal.timeout(12000)
   });
   const text = await res.text();
@@ -215,6 +215,13 @@ export default async function (req) {
     const live = production || playground;
     const mode = production ? 'live' : playground ? 'playground' : 'simulated';
     const acquireToken = async () => production ? (await exchangeRefreshToken(creds)).access_token : creds.playgroundToken;
+    // Authentic camera/device data is admin-only; public visitors use labelled replay.
+    if (live && ['devices', 'events', 'whepSession', 'stopSession'].includes(payload.action)) {
+      const owner = await base44.auth.me().catch(() => null);
+      if (!owner || owner.role !== 'admin') {
+        return Response.json({ok:false, mode, error:'Sign in as the administrator to test the official Ring API. Public replay requires no login.'}, {status:403});
+      }
+    }
 
     // ---------------------------------------------------------------- webhook receiver
     // Ring posts motion / device events here. Anyone can reach this endpoint, so
@@ -269,15 +276,15 @@ export default async function (req) {
         endpoints: {
           token_url: TOKEN_URL,
           api_base: creds.apiBase,
-          device_discovery: '/v1/devices?include=capabilities,location,status',
+          device_discovery: '/v1/devices',
           live_video_session: '/v1/devices/{deviceId}/media/streaming/whep/sessions',
           webhook_events: ['motion', 'device_added', 'device_removed']
         },
-        capabilities: ['device discovery (JSON:API)', 'device capabilities and status', 'live video via WebRTC / WHEP', 'HMAC-signed motion webhooks with request_id idempotency'],
+        capabilities: ['device discovery (JSON:API)', 'device metadata and status', 'live video via WebRTC / WHEP', 'HMAC-signed motion webhooks with request_id idempotency'],
         rate_limit_rps: 100,
         note: live
-          ? 'Ring credentials are configured; an official API connection must still be established by successful device discovery.'
-          : 'Simulated mode. No Ring developer credentials are configured, so documented response shapes are produced locally and labelled as simulated. Set RING_PLAYGROUND_TOKEN for official Playground API calls, or provide OAuth client credentials for production. Playground tokens expire after 30 minutes.'
+          ? 'Ring credentials are configured, but status alone does not verify an official API call. Run device discovery to verify.'
+          : 'Simulated mode. Local fictional fixtures are shown, not genuine Ring API responses. To test the official Playground configure RING_PLAYGROUND_TOKEN in backend secrets (or RING_ACCESS_TOKEN alias); the token expires after about 30 minutes.'
       });
     }
 
@@ -286,8 +293,9 @@ export default async function (req) {
         return Response.json({ ok: true, mode: 'simulated', payload: simulatedDevices() });
       }
       const token = await acquireToken();
-      const data = await ringGet(creds, '/v1/devices?include=capabilities,location,status', token);
-      return Response.json({ ok: true, mode, payload: data });
+      const data = await ringGet(creds, '/v1/devices', token);
+      if (!Array.isArray(data?.data)) return Response.json({ok:false,mode,error:'Unexpected Ring device response.'},{status:502});
+      return Response.json({ok:true,mode,payload:data,official_api_connection:true,verified_at:new Date().toISOString()});
     }
 
     if (action === 'events') {
@@ -302,10 +310,13 @@ export default async function (req) {
     }
 
     if (action === 'whepSession') {
-      const deviceId = payload.device_id || 'ring-dev-88213';
+      const deviceId = payload.device_id;
       if (!live) {
-        return Response.json({ ok: true, mode: 'simulated', payload: simulatedWhepSession(deviceId) });
+        return Response.json({ok:true,mode:'simulated',payload:simulatedWhepSession(deviceId || 'ring-dev-88213')});
       }
+      if (typeof deviceId !== 'string' || !/^[A-Za-z0-9._:-]{1,200}$/.test(deviceId)) return Response.json({ok:false,error:'Valid Ring device required.'},{status:400});
+      const offer = payload.offer_sdp;
+      if (typeof offer !== 'string' || offer.length > 30000 || !offer.startsWith('v=0') || !offer.includes('m=video')) return Response.json({ok:false,error:'Real browser SDP offer required.'},{status:400});
       const token = await acquireToken();
       const res = await fetch(creds.apiBase + '/v1/devices/' + encodeURIComponent(deviceId) + '/media/streaming/whep/sessions', {
         method: 'POST',
@@ -314,14 +325,25 @@ export default async function (req) {
           'Content-Type': 'application/sdp',
           Accept: 'application/sdp, application/json'
         },
-        body: String(payload.offer_sdp || 'v=0\r\no=- 0 0 IN IP4 127.0.0.1\r\ns=RingGuardian\r\nt=0 0\r\na=recvonly\r\nm=video 9 UDP/TLS/RTP/SAVPF 96\r\n'),
+        body: offer,
         signal: AbortSignal.timeout(15000)
       });
       const text = await res.text();
       if (!res.ok) return Response.json({ ok: false, mode, error: 'Ring returned ' + res.status }, { status: 502 });
-      return Response.json({ ok: true, mode, answer_sdp: text, audio: false });
+      return Response.json({ok:true,mode,answer_sdp:text,session_url:res.headers.get('Location') || null,audio:false,official_api_connection:true});
     }
 
+    if (action === 'stopSession') {
+      if (!live) return Response.json({ok:true,mode:'simulated'});
+      let target;
+      try { target = new URL(String(payload.session_url || ''), creds.apiBase); }
+      catch { return Response.json({ok:false,error:'Invalid session URL.'},{status:400}); }
+      if (target.origin !== new URL(creds.apiBase).origin || !target.pathname.startsWith('/v1/devices/') || !target.pathname.includes('/media/streaming/whep/sessions')) {
+        return Response.json({ok:false,error:'Unexpected Ring session endpoint.'},{status:400});
+      }
+      const closed = await fetch(target.toString(), {method:'DELETE',headers:{Authorization:'Bearer '+await acquireToken()},signal:AbortSignal.timeout(10000)});
+      return Response.json({ok:closed.ok || closed.status===404,mode});
+    }
     return Response.json({ ok: false, error: 'Unknown action: ' + action }, { status: 400 });
   } catch (error) {
     return Response.json({ ok: false, error: error.message }, { status: 500 });
