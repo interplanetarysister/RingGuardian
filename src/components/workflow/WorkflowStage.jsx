@@ -13,7 +13,7 @@ export const STATUS_TEXT={active:'WORK HERE',done:'COMPLETED',locked:'FINISH THE
 export default function WorkflowStage({number,title,active=false,done=false,locked=false,optional=false,children,id,description='',onReopen=null}){
  const palette=STAGE_COLORS[(number-1)%STAGE_COLORS.length];
  const status=locked?'locked':active?'active':done?'done':'available';
- return <section id={id} data-stage={number} data-stage-status={status} aria-labelledby={'stage-heading-'+(id||number)} aria-disabled={locked} className={'relative scroll-mt-20 overflow-hidden rounded-[20px] border-[5px] bg-card p-4 sm:p-6 transition-all duration-300 '+(active?'relative z-10 scale-[1.005]':'')} style={{
+ return <section id={id} data-stage={number} data-stage-status={status} aria-labelledby={'stage-heading-'+(id||number)} aria-disabled={locked} className={'relative scroll-mt-20 overflow-hidden rounded-none first:rounded-t-[20px] last:rounded-b-[20px] border-[5px] -mt-[5px] first:mt-0 bg-card p-4 sm:p-6 transition-all duration-300 '+(active?'z-10 scale-[1.005]':'')} style={{
   borderColor:palette.accent,
   background:active?palette.wash:undefined,
   boxShadow:active?'0 0 0 3px '+palette.glow+', 0 16px 38px rgba(0,0,0,.24)':'0 3px 12px rgba(0,0,0,.07)'
@@ -36,10 +36,10 @@ export default function WorkflowStage({number,title,active=false,done=false,lock
  </section>;
 }
 export function StageProgress({titles,current=1,done=[]}){
- return <nav aria-label="Workflow progress" className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-5">
+ return <nav aria-label="Workflow progress" className="grid grid-cols-2 gap-0 overflow-hidden rounded-xl sm:grid-cols-4 lg:grid-cols-5">
   {titles.map((t,i)=>{
    const n=i+1,theme=STAGE_COLORS[i%STAGE_COLORS.length];
-   return <div key={n} className={'rounded-xl border-[3px] px-3 py-2 text-xs font-bold '+(current===n?'bg-card shadow-md':'opacity-80')} style={{borderColor:theme.accent}}>
+   return <div key={n} className={'rounded-none border-[3px] -ml-[3px] first:ml-0 px-3 py-2 text-xs font-bold '+(current===n?'bg-card shadow-md':'opacity-80')} style={{borderColor:theme.accent}}>
      <span className="font-black" style={{color:theme.accent,filter:'drop-shadow(0 0 1px currentColor)'}}>{n}.</span> {t}
      <span className="mt-1 block text-[10px] text-muted-foreground">{done.includes(n)?'Complete':n===current?'Current step':'Waiting'}</span>
    </div>;
