@@ -9,6 +9,8 @@ export const DEMO_CONSENT_NOTICE = 'Demo auto-share is fictional. Real Ring vide
 export const DOORBELL_SCENARIOS = {
  successful_delivery:{defaultEvent:'delivery',choices:[
   {eventKey:'delivery',scene:'doorbell_delivery',title:'Courier completes an 8-second doorstep drop-off',description:'Fictional 8-second courier video: enters carrying the package, puts it down, leaves the frame by second six, then the parcel remains for two seconds.',eventType:'delivery'}]},
+ direct_handoff_no_scan:{defaultEvent:'handoff',choices:[
+  {eventKey:'handoff',scene:'doorbell_handoff',title:'Courier hands the parcel directly to the recipient · no final scan',description:'Fictional eight-second doorbell-perspective handoff: a courier approaches carrying the parcel, a resident comes to the door, the parcel transfers directly into their hands, then the courier leaves. No package is placed on the doorstep, and no delivery scan is shown.',eventType:'delivery'}]},
  delivered_but_missing:{defaultEvent:'disputed_window',choices:[
   {eventKey:'disputed_window',scene:'doorbell_timelapse',title:'Your doorway · two-hour delivery window compressed to 8 seconds',description:'Fictional accelerated summary at the expected address. The parcel never appears in this dramatization. This is not a verified continuous Ring recording; missing frames or an empty sample cannot prove non-delivery.',eventType:'delivery'}]},
  stolen_after_delivery:{defaultEvent:'removal',choices:[
@@ -49,7 +51,7 @@ export function makeCustomerDoorbellClip(shipment,events,eventKey,window=null){
   recorded_start:start,recorded_end:end,
   window_compressed:timelapse,source_window_start:timelapse?start:'',source_window_end:timelapse?end:'',
   motion_events:timelapse?buildDemoWindowMotion(customerDoorwayKey(shipment),start):[],
-  source_label:'SIMULATED customer Ring-style dramatization · NOT Ring device footage',
+  source_label:'FICTIONAL camera-angle scene illustration · NOT an authenticated Ring video',
   generated_sample:true,description:choice.description,
   evidence_provenance:timelapse?'sampled_two_hour_window_unverified':'fictional_event_reenactment'
  };
