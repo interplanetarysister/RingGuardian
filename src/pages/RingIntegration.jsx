@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import RingStreamPlayer from '@/components/ring/RingStreamPlayer';
+import {doorbellDefaultEvent,makeCustomerDoorbellClip} from '../../base44/shared/customerDoorbellProfiles.js';
 import { loadBoard } from '@/lib/board';
 import {
   Radio, RefreshCw, Loader2, Wifi, Monitor, Webhook, AlertTriangle,
@@ -14,6 +15,7 @@ import { percent } from '@/lib/format';
 export default function RingIntegration() {
   const [status, setStatus] = useState(null);
   const [packages, setPackages] = useState([]);
+  const [demoEvents, setDemoEvents] = useState([]);
   const [packageTracking, setPackageTracking] = useState('');
   const [packageError, setPackageError] = useState('');
   const [devices, setDevices] = useState(null);
@@ -39,6 +41,7 @@ export default function RingIntegration() {
       if (!alive) return;
       const shipments = b?.shipments || [];
       setPackages(shipments);
+      setDemoEvents(b?.events || []);
       const favorite = shipments.find(p => p.scenario_key === 'delivered_but_missing') || shipments[0];
       setPackageTracking(favorite?.tracking_number || '');
     }).catch(() => { if (alive) setPackageError('Demo package list is unavailable. Customer view still has its own sample data.'); });
@@ -74,6 +77,8 @@ export default function RingIntegration() {
   const verifiedLive = live && devices?.official_api_connection === true && (devices?.mode === 'live' || devices?.mode === 'playground');
   const deviceRows = devices?.payload?.data || [];
   const eventRows = events?.payload?.data || [];
+  const selectedPackage = packages.find(p => p.tracking_number === packageTracking);
+  const matchedScene = selectedPackage ? makeCustomerDoorbellClip(selectedPackage, demoEvents, doorbellDefaultEvent(selectedPackage)) : null;
 
   return (
     <div className="space-y-4">
@@ -81,7 +86,7 @@ export default function RingIntegration() {
         <div>
           <h1 className="font-heading text-xl font-semibold tracking-tight text-foreground">Ring developer integration</h1>
           <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted-foreground">
-            The Ring-track demo and live API surface. The adapter calls Ring endpoints; when credentials are present it
+            The Ring API and camera connection. The adapter uses supported Ring endpoints; when credentials are present it
             performs real OAuth and device calls, and otherwise reproduces the documented response shapes locally and
             labels them as simulated.
           </p>
@@ -132,7 +137,7 @@ export default function RingIntegration() {
         </label>}
         <p className="text-xs text-muted-foreground">A Ring Playground device is not automatically associated with a real customer's package. This selector controls the fictional demo investigation.</p>
       </div>
-      <RingStreamPlayer key={selectedDeviceId || 'replay'} deviceId={selectedDeviceId} verified={verifiedLive} trackingNumber={packageTracking}/>
+      <RingStreamPlayer key={(selectedDeviceId || 'replay')+packageTracking} deviceId={selectedDeviceId} verified={verifiedLive} trackingNumber={packageTracking} demoClip={matchedScene}/>
       <div className="space-y-3 rounded-xl border-[3px] border-teal-500 bg-card p-4">
         <h2 className="text-lg font-black">3. Compare the delivery and submit an investigation</h2>
         <p className="text-sm">Continue in the existing customer workflow. The paired fictional Ring-style and carrier scenes stay consistent for the selected package; management receives the submitted simulated discrepancy.</p>
@@ -313,7 +318,7 @@ export default function RingIntegration() {
       <div className="flex items-start gap-2 rounded-md border border-tone-warn/30 bg-tone-warn/10 p-3">
         <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-tone-warn" />
         <p className="text-[10px] leading-relaxed text-foreground/90">
-          <span className="font-semibold">Track eligibility, stated plainly.</span> {verifiedLive ? 'Official API device discovery succeeded. For Ring track eligibility, demonstrate an actual Playground stream or other accepted Ring simulator interaction. ' : 'No verified official Ring API response has been shown. Fictional fixtures alone do not establish Ring-track eligibility. '} The adapter is real code against
+          <span className="font-semibold">Ring connection status.</span> {verifiedLive ? 'Official device discovery succeeded. Camera video still requires a successful WebRTC stream. ' : 'No verified official Ring API response has been shown. Fictional fixtures do not establish a connection. '} The adapter is real code against
           documented Ring endpoints, and an adapter must be tested against the actual authorized provider before claiming a live integration. What is not
           claimed: a Ring customer account is connected, a certification has been completed, or any Ring recording is
           shown. Adding RING_CLIENT_ID, RING_CLIENT_SECRET and RING_REFRESH_TOKEN switches every call above to your own
