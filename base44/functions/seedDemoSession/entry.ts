@@ -1,6 +1,6 @@
 // Ring Guardian Cam — demo session provisioning.
 //
-// Every visitor receives their own isolated copy of the five fictional scenarios.
+// Every visitor receives an isolated set of fictional package scenarios.
 // Seeding is deterministic: the same session id always produces the same dataset.
 // No AI, no external service and no paid resource is used to build the fixtures.
 
@@ -158,7 +158,7 @@ export default async function (req) {
     const store = writeStore(base44);
     const reader = readStore(base44);
 
-    const existing = await reader.run((s) => listAll(s, 'Shipment', { demo_session_id: demoSessionId }, null, 5));
+    const existing = await reader.run((s) => listAll(s, 'Shipment', { demo_session_id: demoSessionId }, null, 100));
 
     if (action === 'reset') {
       await clearSession(store, demoSessionId);
@@ -167,7 +167,41 @@ export default async function (req) {
     }
 
     if (existing.length > 0) {
-      return Response.json({ ok: true, action: 'seed', seeded: false, existing: true, shipment_count: existing.length });
+      // Evolve an existing session without deleting its reports, evidence or decisions.
+      // New sample scenarios appear even for returning visitors.
+      const present = new Set(existing.map(x => x.scenario_key));
+      const added = [];
+      for (const scenario of SCENARIOS) {
+        if (present.has(scenario.scenario_key)) continue;
+        const shipment = {
+          ...scenario.shipment,
+          demo_session_id: demoSessionId,
+          scenario_key: scenario.scenario_key,
+          scenario_title: scenario.scenario_title
+        };
+        const duplicate = await reader.run((r) => listAll(r, 'Shipment', {
+          demo_session_id: demoSessionId, tracking_number: shipment.tracking_number
+        }, null, 1));
+        if (duplicate.length) continue;
+        await store.Shipment.create(shipment);
+        for (const ev of scenario.events) {
+          const sync = synchronizeEvent(ev, CLIPS, SCANNERS, CAMERAS);
+          await store.ScanEvent.create({
+            ...ev,
+            demo_session_id: demoSessionId,
+            scenario_key: scenario.scenario_key,
+            tracking_number: shipment.tracking_number,
+            sync_status: sync.sync_status,
+            sync_note: sync.sync_note,
+            video_clip_key: sync.video_clip_key,
+            playback_position_seconds: sync.playback_position_seconds,
+            evidence_source: sync.evidence_source,
+            case_number: ''
+          });
+        }
+        added.push(scenario.scenario_key);
+      }
+      return Response.json({ ok: true, action:'seed', seeded: added.length > 0, existing:true, added_scenarios:added, shipment_count:existing.length+added.length });
     }
 
     const counts = await buildFixtures(store, demoSessionId);
