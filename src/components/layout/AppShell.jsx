@@ -4,9 +4,11 @@ import { Menu, X, RotateCcw, Play, Database } from 'lucide-react';
 import Sidebar from './Sidebar';
 import DisclosureStrip from './DisclosureStrip';
 import { ensureSeeded, resetDemo, sessionId } from '@/lib/demo';
+import {getAppMode} from '@/lib/appMode';
 
 export default function AppShell() {
   const [status, setStatus] = useState('preparing');
+  const [mode, setMode] = useState('unknown');
   const [error, setError] = useState('');
   const [navOpen, setNavOpen] = useState(false);
   const [resetting, setResetting] = useState(false);
@@ -14,13 +16,16 @@ export default function AppShell() {
 
   useEffect(() => {
     let alive = true;
-    ensureSeeded()
-      .then(() => alive && setStatus('ready'))
-      .catch((err) => {
-        if (!alive) return;
-        setError(err?.message || 'The demonstration dataset could not be prepared.');
-        setStatus('error');
-      });
+    getAppMode().then(async (next) => {
+      if (!alive) return;
+      setMode(next);
+      if (next === 'demo') await ensureSeeded();
+      if (alive) setStatus('ready');
+    }).catch((err) => {
+      if (!alive) return;
+      setError(err?.message || 'Could not verify app mode. No demo data was loaded.');
+      setStatus('error');
+    });
     return () => {
       alive = false;
     };
@@ -71,6 +76,19 @@ export default function AppShell() {
       </div>
     );
   }
+
+  if (mode === 'demo' && sessionStorage.getItem('rgc.role') === 'customer') return (
+    <div className="mx-auto max-w-xl p-6"><p className="rounded border p-4">This is the management evidence console. Choose Management view to open its fictional sample data.</p><Link className="mt-4 inline-block underline" to="/view/customer">Return to customer tour</Link></div>
+  );
+
+  if (mode === 'live') return (
+    <div className="min-h-screen bg-background p-6"><div className="mx-auto max-w-2xl space-y-4">
+      <h1 className="text-2xl font-semibold">Ring Guardian · Live setup</h1>
+      <p className="rounded border p-4 text-sm">Simulation is off. No demo packages or recordings are shown. Real integrations require account authorization and working provider connections.</p>
+      <div className="flex flex-wrap gap-3"><Link className="rounded border px-4 py-3" to="/view/customer">Customer setup and tips</Link><Link className="rounded border px-4 py-3" to="/view/management">Management setup and tips</Link><Link className="rounded border px-4 py-3" to="/admin">Admin portal</Link></div>
+      <p className="text-sm text-muted-foreground">Do not enter private package data into the demo evidence console. Account-backed live storage and provider authorization must be enabled before this becomes a production system.</p>
+    </div></div>
+  );
 
   return (
     <div className="min-h-screen bg-background">

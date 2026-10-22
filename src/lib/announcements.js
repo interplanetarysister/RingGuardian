@@ -12,40 +12,39 @@ function spokenFor(shipment, tail, caseNumber) {
         tone: 'ok',
         title: 'Delivery confirmed',
         spoken:
-          'Delivery confirmed. Package ending ' + tail + ' was scanned and filmed at ' +
-          (shipment.destination_city || 'the destination') + ', and the recipient accepted it.'
+          'Simulated delivery confirmed. Package ending ' + tail + ' has a completed delivery record at ' +
+          (shipment.destination_city || 'the destination') + '. The sample recipient is marked as having received it.'
       };
     case 'delivered_no_receipt':
       return {
         tone: 'warn',
         title: 'Delivery disputed',
         spoken:
-          'Package ending ' + tail + ' needs review. The delivery scan and the camera agree, but the ' +
-          'recipient reports that nothing arrived.' + (caseNumber ? ' Case ' + caseNumber + ' is open.' : '')
+          'Simulated package ending ' + tail + ' needs review. The carrier record says delivered, but the recipient reports missing. This is a delivery discrepancy, not proof of theft.' + (caseNumber ? ' Case ' + caseNumber + ' is open.' : '')
       };
     case 'misrouted':
       return {
         tone: 'danger',
         title: 'Wrong trailer',
         spoken:
-          'Attention. Package ending ' + tail + ' was scanned onto the wrong trailer at ' +
+          'Attention. Simulated package ending ' + tail + ' needs review at ' +
           (shipment.current_facility || 'the origin facility') +
-          '. The scan is valid, and the recording shows it loaded beside the wrong trailer.'
+          '. The scan was accepted, but the reconstructed scene shows the parcel placed beside trailer T R L three three eight eight, rather than confirmed inside its assigned trailer.'
       };
     case 'missing':
       return {
         tone: 'danger',
         title: 'Scan missing',
         spoken:
-          'Package ending ' + tail + ' was last seen at ' + (shipment.last_known_location || 'an unknown location') +
-          '. The next scan never arrived, and no recording covers that window.'
+          'Simulated package ending ' + tail + ' is marked missing. Review the last recorded location, ' + (shipment.last_known_location || 'unknown') +
+          ', and compare its handling evidence. Do not infer theft or a verified real-world outcome.'
       };
     case 'scan_exception':
       return {
         tone: 'warn',
         title: 'Unconfirmed scan',
         spoken:
-          'Package ending ' + tail + ' has an unconfirmed scan at ' +
+          'Simulated package ending ' + tail + ' has an unconfirmed scan at ' +
           (shipment.current_facility || 'its current facility') +
           '. The recording matched the event, but the scan itself was never confirmed.'
       };
@@ -54,7 +53,7 @@ function spokenFor(shipment, tail, caseNumber) {
         tone: 'info',
         title: 'Custody update',
         spoken:
-          'Package ending ' + tail + ' is ' + (SHIPMENT_STATUS[shipment.status]?.label || 'in progress') +
+          'Simulated package ending ' + tail + ' is ' + (SHIPMENT_STATUS[shipment.status]?.label || 'in progress') +
           '. No discrepancy is recorded for this package.'
       };
   }

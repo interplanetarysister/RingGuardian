@@ -1,0 +1,10 @@
+{
+  "name": "AppSetting",
+  "type": "object",
+  "properties": {
+    "key": {"type": "string"},
+    "mode": {"type": "string", "enum": ["demo", "live"]},
+    "updated_at": {"type": "string"}
+  },
+  "required": ["key", "mode"]
+}

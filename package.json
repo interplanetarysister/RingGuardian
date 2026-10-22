@@ -10,11 +10,10 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
     "preview": "vite preview",
-    "test": "node --test scripts/*.test.mjs",
-    "test:evidence": "node --test scripts/delivery-evidence.test.mjs"
+    "test": "node --test scripts/live-workflows.test.mjs"
   },
   "dependencies": {
-    "@base44/sdk": "^0.8.56",
+    "@base44/sdk": "^0.8.57",
     "@base44/vite-plugin": "^1.0.47",
     "@hello-pangea/dnd": "^17.0.0",
     "@hookform/resolvers": "^4.1.2",

@@ -8,6 +8,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import AppShell from '@/components/layout/AppShell';
 import Landing from '@/pages/Landing';
+import Entry from '@/pages/Entry';
 import Dashboard from '@/pages/Dashboard';
 import Packages from '@/pages/Packages';
 import PackageDetail from '@/pages/PackageDetail';
@@ -24,17 +25,18 @@ import GuidedDemo from '@/pages/GuidedDemo';
 import Alexa from '@/pages/Alexa';
 import AmazonIntegration from '@/pages/AmazonIntegration';
 import Operations from '@/pages/Operations';
-import CustomerPortal from '@/pages/CustomerPortal';
-import ManagementPortal from '@/pages/ManagementPortal';
-import ManagementWalkthrough from '@/pages/ManagementWalkthrough';
-import WearablePairing from '@/pages/WearablePairing';
 import LiveEvents from '@/pages/LiveEvents';
 import GuidedAssistant from '@/components/alexa/GuidedAssistant';
 import About from '@/pages/About';
+import VisitorPortal from '@/pages/VisitorPortal';
+import CustomerWorkspace from '@/pages/CustomerWorkspace';
+import HubManagement from '@/pages/HubManagement';
+import AdminPortal from '@/pages/AdminPortal';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
+  // Public visitor routes do not need Base44 login; admin changes remain protected server-side.
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
@@ -49,22 +51,21 @@ const AuthenticatedApp = () => {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
-      navigateToLogin();
-      return null;
+      // Visitors may browse public demo and role setup without signing in.
+      // Admin operations independently require authenticated owner permissions.
     }
   }
 
   // Render the main app
   return (
     <Routes>
-      <Route path="/" element={<Landing />} />
+      <Route path="/" element={<Entry />} />
+      <Route path="/overview" element={<Landing />} />
+      <Route path="/view/customer" element={<CustomerWorkspace />} />
+      <Route path="/view/management" element={<HubManagement />} />
+      <Route path="/admin" element={<AdminPortal />} />
       <Route element={<AppShell />}>
         {['validation','alerts','activity','customer','connections','settings','monitoring'].map(path=><Route key={path} path={'/'+path} element={<Operations/>}/>)}
-        <Route path="/customer-report" element={<CustomerPortal />} />
-        <Route path="/management" element={<ManagementPortal />} />
-        <Route path="/management/walkthrough" element={<ManagementWalkthrough />} />
-        <Route path="/management/pairing" element={<WearablePairing />} />
         <Route path="/live-events" element={<LiveEvents />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/packages" element={<Packages />} />

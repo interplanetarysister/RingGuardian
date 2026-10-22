@@ -4,42 +4,15 @@ import { readCache, readStale, writeCache, clearCache } from '@/lib/cache';
 
 const TTL_MS = 60000;
 
-function items(res) {
-  return Array.isArray(res) ? res : (res && res.items) || [];
-}
-
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function fetchBoard() {
   await ensureSeeded();
-  const query = { demo_session_id: sessionId() };
-
-  const [shipments, events, clips, cameras, scanners, employees, cases, requests, activity] =
-    await Promise.all([
-      base44.entities.Shipment.filter(query, { limit: 50 }),
-      base44.entities.ScanEvent.filter(query, { sort: '-occurred_at', limit: 400 }),
-      base44.entities.VideoClip.filter(query, { limit: 300 }),
-      base44.entities.GuardianCamera.filter(query, { limit: 100 }),
-      base44.entities.Scanner.filter(query, { limit: 100 }),
-      base44.entities.Employee.filter(query, { limit: 100 }),
-      base44.entities.Investigation.filter(query, { limit: 100 }),
-      base44.entities.FootageRequest.filter(query, { limit: 100 }),
-      base44.entities.ActivityLog.filter(query, { sort: '-occurred_at', limit: 80 })
-    ]);
-
-  return {
-    shipments: items(shipments),
-    events: items(events),
-    clips: items(clips),
-    cameras: items(cameras),
-    scanners: items(scanners),
-    employees: items(employees),
-    cases: items(cases),
-    requests: items(requests),
-    activity: items(activity)
-  };
+  const res=await base44.functions.invoke('demoBoard',{demo_session_id:sessionId()});
+  if(res?.data?.ok!==true||!res.data.board)throw Error(res?.data?.error||'Demo records unavailable');
+  return res.data.board;
 }
 
 /**

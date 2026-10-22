@@ -95,6 +95,11 @@ export default function RingIntegration() {
         </div>
       ) : null}
 
+      <div role="status" className="rounded-md border border-border bg-card p-3 text-xs leading-relaxed text-foreground"><strong>Ring Cameras — intended home-delivery monitoring integration.</strong> Currently implemented: a Ring API adapter and fictional camera/evidence demonstration. A verified customer Ring camera stream is not connected. This app is independent and is not an official Ring product.<p className="mt-2"/>
+        <strong>Verification boundary:</strong> A simulated device list or a configured secret does not prove an official Ring connection.
+        Live or Playground mode requires a successful authenticated device API call. Synthetic camera events and hypothetical wearables are demonstration assets, not real Ring hardware footage.
+      </div>
+
       <div className="grid gap-4 xl:grid-cols-[1fr_1.15fr]">
         <div className="space-y-4">
           <Panel title="Adapter state" subtitle={status?.mode === 'playground' ? 'Official Ring Developer Playground API token' : live ? 'Calls use authorized Ring OAuth credentials' : 'Local mock responses only — not official Playground'}>

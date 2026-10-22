@@ -145,6 +145,9 @@ export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
     const payload = await req.json().catch(() => ({}));
+    const configRows = await base44.asServiceRole.entities.AppSetting.filter({key:'global-mode'});
+    const cfg = (Array.isArray(configRows) ? configRows : configRows?.items || [])[0];
+    if (cfg?.mode === 'live') return Response.json({ok:false,error:'Simulation is disabled by the administrator.'},{status:403});
     const demoSessionId = payload.demo_session_id;
     const action = payload.action === 'reset' ? 'reset' : 'seed';
 

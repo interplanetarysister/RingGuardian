@@ -1,0 +1,14 @@
+import React from 'react';
+import {Camera,Mic,PackageSearch,BatteryCharging,Truck,Headphones} from 'lucide-react';
+const SERVICES=[
+ {name:'Ring home camera',Icon:Camera,preview:'Doorstep camera preview',detail:'Planned: connect an authorized Ring camera to review delivery-window activity. No feed is connected.'},
+ {name:'Alexa voice assistant',Icon:Mic,preview:'Voice request and spoken guidance',detail:'Planned: Alexa+ questions about package status and recovery. Browser speech is the current demo substitute.'},
+ {name:'Package and carrier tracking',Icon:PackageSearch,preview:'Delivery route and status',detail:'Planned: import authorized Amazon and carrier updates. Live account lookup is not connected.'},
+ {name:'Wearable scanner health',Icon:BatteryCharging,preview:'Worker ID · ring scanner · battery %',detail:'Planned for hub staff: paired wearable scanner, battery and recordings. Existing readings are simulated.'},
+ {name:'Management intervention',Icon:Truck,preview:'Exception → assigned retrieval',detail:'Planned: escalation, dispatcher assignment and package retrieval tracking. Automatic dispatch is not active.'},
+ {name:'Customer complaint support',Icon:Headphones,preview:'Complaint → evidence → support',detail:'Planned: persistent complaint and support follow-up. Amazon claims cannot be submitted directly.'}
+];
+export default function IntegrationPlaceholders({audience='customer'}){
+ const rows=SERVICES.filter(x=>audience==='management'?['Wearable scanner health','Management intervention','Alexa voice assistant','Ring home camera'].includes(x.name):['Ring home camera','Alexa voice assistant','Package and carrier tracking','Customer complaint support'].includes(x.name));
+ return <section aria-label="Future connection previews" className="space-y-3"><div><h2 className="text-lg font-semibold">Your workspace preview</h2><p className="text-sm text-muted-foreground">Demo is off. The panels below illustrate intended integrations; they are not live data, screenshots or connected devices.</p></div><div className="grid gap-3 sm:grid-cols-2">{rows.map(({name,Icon,preview,detail})=><article key={name} className="overflow-hidden rounded-xl border bg-card"><div className="flex min-h-36 flex-col items-center justify-center gap-3 border-b bg-muted/30 px-4 py-6 text-center"><Icon size={38} className="text-primary" aria-hidden="true"/><strong className="text-sm">{preview}</strong><span className="rounded-full border px-2 py-1 text-xs text-muted-foreground">Illustrative placeholder · Not connected</span></div><div className="p-4"><h3 className="font-semibold">{name}</h3><p className="mt-2 text-sm text-muted-foreground">{detail}</p></div></article>)}</div></section>;
+}
