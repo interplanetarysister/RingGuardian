@@ -91,8 +91,32 @@ export default async function (req) {
       const started = Date.parse(payload.started_at);
       if (!Number.isFinite(started) || started > Date.now() || started < Date.now() - 86400000) return badRequest('Start or replay this event before saving it.');
       if (Date.now() < started + scenario.duration * 1000 - 500 && payload.completed !== true) return badRequest('Wait for the simulated event to finish.');
-      const shipment = findShipment(scenario.tracking);
-      if (!shipment) return badRequest('The demo package is missing. Reset the demo and try again.');
+      // The operator can replay against an existing sample or create a separate synthetic
+      // package. Never create real courier records from the simulator.
+      const createNew = payload.package_mode === 'new';
+      const tracking = createNew
+        ? 'SIM-' + payload.run_id.replace(/-/g, '').slice(0, 16).toUpperCase()
+        : scenario.tracking;
+      let shipment = findShipment(tracking);
+      if (!shipment) {
+        shipment = await store.Shipment.create({
+          demo_session_id: demoSessionId,
+          tracking_number: tracking,
+          scenario_key: scenario.key,
+          scenario_title: scenario.title + ' (simulated)',
+          scenario_summary: scenario.finding,
+          status: 'in_transit',
+          recipient_name: 'Demo recipient',
+          destination_city: 'Simulated destination',
+          origin_facility: 'Simulation facility',
+          current_facility: scenario.scene.startsWith('porch') ? 'Simulated delivery address' : 'Simulated distribution center',
+          last_known_location: 'Simulation scene',
+          expected_destination: 'Simulated destination',
+          discrepancy_flag: false,
+          investigation_status: 'none',
+          evidence_status: 'available'
+        });
+      }
       const clipKey = 'LIVE-' + payload.run_id;
       let clip = ctx.clips.find(c => c.clip_key === clipKey);
       if (!clip) clip = await store.VideoClip.create({
@@ -107,7 +131,7 @@ export default async function (req) {
       });
       let event = ctx.events.find(e => e.video_clip_key === clipKey);
       if (!event) event = await store.ScanEvent.create({
-        demo_session_id: demoSessionId, tracking_number: scenario.tracking, scenario_key: scenario.key,
+        demo_session_id: demoSessionId, tracking_number: tracking, scenario_key: scenario.key,
         sequence: 1000, event_type: 'handling', event_label: 'Simulated live event: ' + scenario.title,
         occurred_at: new Date(started + 8000).toISOString(), scanner_id: 'SIM-SCANNER-01',
         camera_id: clip.camera_id, employee_id: 'SIM-WORKER-01', facility: shipment.current_facility,
@@ -117,7 +141,7 @@ export default async function (req) {
         video_clip_key: clipKey, playback_position_seconds: 8,
         evidence_source: 'Local synthetic simulation', note: scenario.finding
       });
-      let caseRecord = ctx.cases.find(c => c.tracking_number === scenario.tracking);
+      let caseRecord = ctx.cases.find(c => c.tracking_number === tracking);
       const report = evidenceReport(scenario,{id:payload.run_id,started_at:payload.started_at});
       if (scenario.issue) {
         const patch = {status:'investigating',findings:scenario.finding,evidence_summary:JSON.stringify(report),
@@ -125,7 +149,7 @@ export default async function (req) {
         if (caseRecord) {
           await store.Investigation.update(caseRecord.id,patch);
         } else caseRecord = await store.Investigation.create({...patch,demo_session_id:demoSessionId,
-          case_number:'CASE-LIVE-'+payload.run_id.slice(0,8).toUpperCase(),tracking_number:scenario.tracking,
+          case_number:'CASE-LIVE-'+payload.run_id.slice(0,8).toUpperCase(),tracking_number:tracking,
           scenario_key:scenario.key,title:scenario.title,priority:'medium',opened_at:nowIso(),opened_by:'demo_operator',summary:scenario.finding});
       }
       await store.Shipment.update(shipment.id,{status:scenario.status,discrepancy_flag:scenario.issue,
@@ -134,8 +158,8 @@ export default async function (req) {
       const savedClip = await store.VideoClip.get(clip.id);
       if (verified.video_clip_key !== clipKey || savedClip.recorded_start !== payload.started_at) throw new Error('Saved evidence did not pass read-back verification.');
       await recordActivity(base44,{demo_session_id:demoSessionId,actor:'live_simulator',action:'Live simulation evidence saved and verified',
-        entity_type:'Shipment',entity_ref:scenario.tracking,detail:scenario.title+' · '+clipKey,severity:scenario.issue?'notice':'info',category:'evidence'});
-      return Response.json({ok:true,verified:true,tracking_number:scenario.tracking,event_id:event.id,
+        entity_type:'Shipment',entity_ref:tracking,detail:scenario.title+' · '+clipKey,severity:scenario.issue?'notice':'info',category:'evidence'});
+      return Response.json({ok:true,verified:true,tracking_number:tracking,event_id:event.id,
         clip_key:clipKey,case_number:caseRecord?.case_number||'',report});
     }
 
