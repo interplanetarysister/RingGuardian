@@ -1,6 +1,6 @@
 // Ring Guardian Cam — Ring developer integration adapter.
 //
-// This is the Ring-track eligible surface: real code that calls documented Ring
+// This is the Ring developer API adapter: real code that calls documented Ring
 // endpoints. Two modes are supported.
 //
 //   live      — Ring developer credentials are present. The function performs the
