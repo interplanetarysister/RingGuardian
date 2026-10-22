@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {handleDemoAlexaRequest,WALKTHROUGH} from '../alexa/skillLogic.mjs';
+const request=(name,index=0)=>({request:{type:'IntentRequest',intent:{name}},session:{attributes:{tourIndex:index}}});
+test('launch explicitly says simulated',()=>assert.match(handleDemoAlexaRequest({request:{type:'LaunchRequest'}}).response.outputSpeech.text,/simulated/i));
+test('next advances to step 2',()=>assert.equal(handleDemoAlexaRequest(request('NextStepIntent')).sessionAttributes.tourIndex,1));
+test('previous never goes below zero',()=>assert.equal(handleDemoAlexaRequest(request('PreviousStepIntent')).sessionAttributes.tourIndex,0));
+test('tour cannot exceed final step',()=>assert.equal(handleDemoAlexaRequest(request('NextStepIntent',99)).sessionAttributes.tourIndex,WALKTHROUGH.length-1));
+test('repeated step leaves index intact',()=>assert.equal(handleDemoAlexaRequest(request('RepeatStepIntent',3)).sessionAttributes.tourIndex,3));
+test('stop ends session',()=>assert.equal(handleDemoAlexaRequest(request('AMAZON.StopIntent')).response.shouldEndSession,true));
+test('help provides navigation instructions',()=>assert.match(handleDemoAlexaRequest(request('AMAZON.HelpIntent')).response.outputSpeech.text,/next step/i));
