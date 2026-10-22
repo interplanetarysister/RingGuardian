@@ -22,7 +22,7 @@ test('default narration speed and brief factual introduction are configured',()=
  const voice=readFileSync('src/lib/voice.js','utf8');
  const entry=readFileSync('src/pages/Entry.jsx','utf8');
  assert.match(voice,/DEFAULT_GUIDE_SPEED=1\.3/);
- assert.match(entry,/voice\.playbackRate=getGuideSpeed\(\)/);
+ assert.match(entry,/voice\.rate=getGuideSpeed\(\)/);
  assert.match(entry,/Security\.org’s 2025 report estimated 37 million/);
  assert.doesNotMatch(entry,/photographs saved from a fire/);
 });
