@@ -4,7 +4,7 @@ import StatusPill from '@/components/common/StatusPill';
 import { SHIPMENT_STATUS, EVIDENCE, CASE_STATUS, meta } from '@/lib/status';
 import { formatDateTime, money } from '@/lib/format';
 
-function Field({ icon: Icon, label, value, mono }) {
+function Field({ icon: Icon = null, label, value, mono = false }) {
   return (
     <div className="flex items-start gap-2">
       {Icon ? <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" /> : null}

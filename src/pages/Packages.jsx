@@ -38,6 +38,7 @@ export default function Packages() {
         !q ||
         s.tracking_number.toLowerCase().includes(q) ||
         (s.recipient_name || '').toLowerCase().includes(q) ||
+        (s.package_nickname || '').toLowerCase().includes(q) ||
         (s.destination_city || '').toLowerCase().includes(q) ||
         (s.scenario_title || '').toLowerCase().includes(q);
       const matchesFilter =
@@ -61,7 +62,7 @@ export default function Packages() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search tracking number, recipient or city"
+            placeholder="Search tracking number, package nickname, recipient or city"
             className="w-full rounded-md border border-input bg-card py-2 pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-1 focus:ring-ring"
           />
         </div>
@@ -133,7 +134,7 @@ export default function Packages() {
                         <Link to={`/packages/${s.tracking_number}`} className="rgc-mono text-[11px] font-medium text-foreground hover:text-primary">
                           {s.tracking_number}
                         </Link>
-                        <p className="mt-0.5 text-[10px] text-muted-foreground">{s.recipient_name} · {s.destination_city}</p>
+                        {s.package_nickname&&<p className="mt-0.5 text-[11px] font-semibold text-primary">{s.package_nickname} (customer nickname)</p>}<p className="mt-0.5 text-[10px] text-muted-foreground">{s.recipient_name} · {s.destination_city}</p>
                       </td>
                       <td className="px-4 py-3 text-[11px] text-foreground">{s.scenario_title}</td>
                       <td className="px-4 py-3">

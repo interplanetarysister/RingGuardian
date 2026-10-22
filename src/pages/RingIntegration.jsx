@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import RingStreamPlayer from '@/components/ring/RingStreamPlayer';
 import { loadBoard } from '@/lib/board';
 import {
-  Radio, RefreshCw, Loader2, Wifi, Monitor, Video, Webhook, AlertTriangle,
+  Radio, RefreshCw, Loader2, Wifi, Monitor, Webhook, AlertTriangle,
   Check, ServerCog, KeyRound
 } from 'lucide-react';
 import Panel from '@/components/common/Panel';

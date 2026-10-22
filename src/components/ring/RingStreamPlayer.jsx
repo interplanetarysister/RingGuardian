@@ -58,9 +58,10 @@ export default function RingStreamPlayer({ deviceId, verified, trackingNumber })
       });
       peerRef.current = peer;
       peer.addTransceiver('video', { direction: 'recvonly' });
-      peer.addTransceiver('audio', { direction: 'recvonly' });
+      // Ring WHEP documentation: video only. Do not request or record audio.
       peer.ontrack = event => {
         if (!videoRef.current) return;
+        if(event.track?.kind !== 'video')return;
         videoRef.current.srcObject = event.streams[0] || new MediaStream([event.track]);
         videoRef.current.play().catch(() => {});
         setStreaming(true);
@@ -68,7 +69,7 @@ export default function RingStreamPlayer({ deviceId, verified, trackingNumber })
       peer.onconnectionstatechange = () => {
         if (['disconnected', 'failed', 'closed'].includes(peer.connectionState)) setStreaming(false);
       };
-      const offer = await peer.createOffer({ offerToReceiveVideo: true, offerToReceiveAudio: true });
+      const offer = await peer.createOffer();
       await peer.setLocalDescription(offer);
       await new Promise(resolve => {
         if (peer.iceGatheringState === 'complete') return resolve();
@@ -83,7 +84,7 @@ export default function RingStreamPlayer({ deviceId, verified, trackingNumber })
         action: 'whepSession', device_id: deviceId,
         offer_sdp: peer.localDescription.sdp
       });
-      if (!result?.ok || !result?.official_api_connection || !result?.answer_sdp) {
+      if (!result?.ok || !result?.official_api_connection || !result?.answer_sdp || result.mode === 'simulated') {
         throw new Error(result?.error || 'An authenticated Ring WHEP answer was not returned.');
       }
       sessionRef.current = result.session_url || null;

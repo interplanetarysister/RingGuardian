@@ -1,7 +1,7 @@
 // Read-only, server-mediated data access for fictional Ring Guardian demo sessions.
 // Never expose an entity SDK or service-role capability to the browser.
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
-const TABLES={shipments:['Shipment',50],events:['ScanEvent',400,'-occurred_at'],clips:['VideoClip',300],cameras:['GuardianCamera',100],scanners:['Scanner',100],employees:['Employee',100],cases:['Investigation',100],requests:['FootageRequest',100],activity:['ActivityLog',80,'-occurred_at']};
+const TABLES={shipments:['Shipment',50],events:['ScanEvent',400,'-occurred_at'],clips:['VideoClip',300],cameras:['GuardianCamera',100],scanners:['Scanner',100],employees:['Employee',100],cases:['Investigation',100],complaints:['CustomerComplaint',100,'-submitted_at'],requests:['FootageRequest',100],activity:['ActivityLog',80,'-occurred_at']};
 const listed=x=>Array.isArray(x)?x:(x?.items||[]);
 export default async function(req){
  if(req.method!=='POST')return Response.json({ok:false,error:'Method not allowed'},{status:405});

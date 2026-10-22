@@ -1,0 +1,91 @@
+{
+  "name": "CustomerComplaint",
+  "type": "object",
+  "properties": {
+    "demo_session_id": {
+      "type": "string"
+    },
+    "report_number": {
+      "type": "string"
+    },
+    "submission_key": {
+      "type": "string"
+    },
+    "tracking_number": {
+      "type": "string"
+    },
+    "package_nickname": {
+      "type": "string"
+    },
+    "issue": {
+      "type": "string"
+    },
+    "detail": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "submitted_to_management",
+        "under_review",
+        "resolved"
+      ],
+      "default": "submitted_to_management"
+    },
+    "submitted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "evidence_clip_key": {
+      "type": "string"
+    },
+    "evidence_received": {
+      "type": "boolean",
+      "default": false
+    },
+    "evidence_kind": {
+      "type": "string"
+    },
+    "evidence_note": {
+      "type": "string"
+    },
+    "external_submission": {
+      "type": "boolean",
+      "default": false
+    },
+    "comparison_clip_key": {
+      "type": "string"
+    },
+    "demo_sharing_consent": {
+      "type": "boolean"
+    },
+    "comparison_verdict": {
+      "type": "string"
+    },
+    "investigation_notes": {
+      "type": "string"
+    },
+    "comparison_reviewed_at": {
+      "type": "string"
+    },
+    "identifying_factors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "reported_window_start": {
+      "type": "string"
+    },
+    "reported_window_end": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "demo_session_id",
+    "report_number",
+    "tracking_number",
+    "issue",
+    "submitted_at"
+  ]
+}

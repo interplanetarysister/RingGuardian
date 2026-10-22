@@ -1,0 +1,15 @@
+# Guardian conversational guide
+
+Provider: Cloudflare Workers AI. Model: Meta Llama 3.1 8B Instruct FP8 (`@cf/meta/llama-3.1-8b-instruct-fp8`). This is an Alexa+ simulation, not a registered Amazon Alexa voice service. Input transcription and spoken output use the browser Web Speech API; availability varies by browser and device.
+
+The model receives versioned Ring Guardian instructions, all ten walkthrough steps, seven worked examples, the current page, the current local tool result, and at most four recent conversation turns. These are contextual instructions, not weight training or fine-tuning. No recordings or conversation logs are persisted by the application. Transcribed questions and recent replies go to Cloudflare when the user opts into conversational AI; users are told to avoid private data.
+
+The model can suggest an allowlisted route and text only. Investigation confirmation and writes remain with the existing application code. Failure or timeout returns the original built-in guide answer with an explicit status. Owner approved up to 1,000 neurons on October 22. Backend inference is enabled with a persistent allowance gate and conservative reservations before each call. Successful calls reconcile provider-reported usage; errors keep the reservation. There is no daily reset or paid-plan upgrade. The frontend defaults to built-in guidance and offers a per-session AI option.
+
+## Initial enablement budget
+Owner approved up to 1,000 Cloudflare neurons. Live verification covered delivery uncertainty, timestamp mismatch, and refusing an instruction to pretend a claim had been submitted. The first attempt found a response-format mismatch, corrected by using short plain-text model responses. This is within the documented 10,000-neuron daily free allowance if it remains available; the connected OAuth scope cannot read billing subscriptions, so no promise of zero charge is made. Do not enable sustained inference or upgrade the plan without an explicit usage allowance. Keep the persistent allowance gate; expanding the allowance needs fresh owner approval.
+
+## Verification
+`node --test scripts/conversational-guide.test.mjs` checks the quota gate, scope and size validation, route restrictions, rate limiting, and knowledge coverage without contacting a model. `npm test`, `npm run lint` and `npm run build` check existing app behavior. Live model answer checks passed after instruction refinements. Audible microphone-to-reply playback in the published app is not yet verified; publishing requires Base44 authentication in the browser.
+
+Worker source: `cloudflare/guardian-guide/worker.mjs`. Knowledge source: `cloudflare/guardian-guide/knowledge.json`; update both together. Endpoint: `https://ring-guardian-guide.interplanetary-fund.workers.dev/chat`, with a non-inference `/health` endpoint. Rate limiting permits five requests per minute per IP. Origin checks are browser controls, not authentication; this endpoint is deliberately limited to fictional public demo guidance and must not be reused for private accounts.

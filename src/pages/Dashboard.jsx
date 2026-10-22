@@ -78,11 +78,11 @@ export default function Dashboard() {
   const attention = board.shipments.filter((s) => s.discrepancy_flag);
   const gaps = board.events
     .filter((e) => e.sync_status !== 'matched')
-    .sort((a, b) => new Date(b.occurred_at) - new Date(a.occurred_at))
+    .sort((a, b) => new Date(b.occurred_at).getTime() - new Date(a.occurred_at).getTime())
     .slice(0, 6);
   const recent = board.events
     .slice()
-    .sort((a, b) => new Date(b.occurred_at) - new Date(a.occurred_at))
+    .sort((a, b) => new Date(b.occurred_at).getTime() - new Date(a.occurred_at).getTime())
     .slice(0, 7);
 
   return (

@@ -12,7 +12,7 @@ import { formatDateTime, formatTime } from '@/lib/format';
 
 export default function Evidence() {
   const [board, setBoard] = useState(null);
-  const [selectedClipKey, setSelectedClipKey] = useState('');
+  const [selectedClipKey, setSelectedClipKey] = useState(() => new URLSearchParams(window.location.search).get('clip') || '');
   const [labEventId, setLabEventId] = useState('');
   const [labResult, setLabResult] = useState(null);
   const [busy, setBusy] = useState('');
@@ -156,7 +156,7 @@ export default function Evidence() {
             >
               {board.events
                 .slice()
-                .sort((a, b) => new Date(b.occurred_at) - new Date(a.occurred_at))
+                .sort((a, b) => new Date(b.occurred_at).getTime() - new Date(a.occurred_at).getTime())
                 .map((e) => (
                   <option key={e.id} value={e.id}>
                     {formatTime(e.occurred_at)} · {e.tracking_number.slice(-6)} · {e.event_type}

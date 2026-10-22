@@ -16,7 +16,7 @@ export function validateLoading(shipment,events,rules={}){
  if(shipment.discrepancy_flag)reasons.push(shipment.discrepancy_reason||'Package has an unresolved exception.');
  return {checks,reasons,lastVerified:latest||null,expected,observed,status:reasons.length?'Review required':Object.values(checks).some(v=>v===null)?'Pending manifest data':'Checks complete',method:'Binary record-completeness checks: 100 means the named record check passed, 0 means it failed, unavailable means there is not enough data. These percentages are not vision confidence.'};
 }
-export async function assistantAnswer(text,{tracking='',path='/',confirm=false}={}){
+export async function localAssistantAnswer(text,{tracking='',path='/',confirm=false}={}){
  const q=text.trim().toLowerCase().replace(/[?!.,]/g,' ').replace(/\s+/g,' '),board=await loadBoard();
  const says=(...terms)=>terms.some(term=>q.includes(term));
  const digits=text.match(/\d{4,}/)?.[0];

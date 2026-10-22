@@ -329,7 +329,8 @@ export default async function (req) {
         signal: AbortSignal.timeout(15000)
       });
       const text = await res.text();
-      if (!res.ok) return Response.json({ ok: false, mode, error: 'Ring returned ' + res.status }, { status: 502 });
+      if (res.status !== 201) return Response.json({ ok: false, mode, error: 'Ring WHEP session was not created (HTTP ' + res.status + ')' }, { status: 502 });
+      if (!text.startsWith('v=0') || !text.includes('m=video')) return Response.json({ok:false,mode,error:'Ring returned an invalid WHEP video SDP answer'},{status:502});
       return Response.json({ok:true,mode,answer_sdp:text,session_url:res.headers.get('Location') || null,audio:false,official_api_connection:true});
     }
 

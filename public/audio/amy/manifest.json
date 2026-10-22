@@ -1,0 +1,43 @@
+{
+  "provider": "Piper offline synthesized narration",
+  "voice": "en_US-amy-medium",
+  "engine": "Piper TTS",
+  "scripts": {
+    "customer-1": {
+      "src": "/audio/amy/customer-1.wav",
+      "sha256": "ed97d3e44f857fa06bba37ebb8df4954a434df727b3c6d1c3830156aac0469e9"
+    },
+    "customer-2": {
+      "src": "/audio/amy/customer-2.wav",
+      "sha256": "47dc0a568c5363f3148ff64f88a938bc07577a92d55fb44d84b5cfb9a19e13d9"
+    },
+    "customer-3": {
+      "src": "/audio/amy/customer-3.wav",
+      "sha256": "fafecd4b4dda3daad1050e71c2524af6fd68e2c23d8d7f44910bff3103f9054c"
+    },
+    "customer-4": {
+      "src": "/audio/amy/customer-4.wav",
+      "sha256": "5b82bd7be66578af160c97829803db90af5b2deac1b17b4f627b486035bd5465"
+    },
+    "management-1": {
+      "src": "/audio/amy/management-1.wav",
+      "sha256": "6f4973f69c37f4952ec11da684d854cc02d2bbe02777e2701f48faf12704080c"
+    },
+    "management-2": {
+      "src": "/audio/amy/management-2.wav",
+      "sha256": "69731e570ce4dd753d2d0c0dcae5b19200e1a8f8b64e41498ef26587af88d461"
+    },
+    "management-3": {
+      "src": "/audio/amy/management-3.wav",
+      "sha256": "e7372f02d49a2356e911d53c7250cce6f7a3d777f1ef130a399d29e639428c93"
+    },
+    "management-4": {
+      "src": "/audio/amy/management-4.wav",
+      "sha256": "4ae979e0fee0059d98c2988ddb9062716d07688331a86ac355f5aa1f99f18ecd"
+    },
+    "management-5": {
+      "src": "/audio/amy/management-5.wav",
+      "sha256": "6a9758f696a9c77a6cb5b6f7207a054f9ba2d8b5a312203500082c220144f75e"
+    }
+  }
+}

@@ -14,8 +14,8 @@ const CUSTOMER_STEPS=[
  ['Add your deliveries','Enter one tracking number, import a file, or request a permitted email or carrier connection.'],
  ['Review imported details','Confirm the tracking number, courier and expected delivery.'],
  ['Check delivery updates','Compare courier status and any authorized camera observations.'],
- ['Report an issue','If the courier says delivered but you did not receive it, clearly flag that discrepancy.'],
- ['Follow your next steps','Keep evidence and review official carrier guidance. Nothing is submitted without you.']
+ ['Submit a sample report','On the customer demo page, choose the issue and optional simulated Ring-style footage, then submit the report to the internal management queue. This is not an external claim.'],
+ ['Confirm receipt','Review the submitted report ID and video receipt in My submitted reports. Management can open the same fictional case. Police and carrier filings remain separate.']
 ];
 export default function VisitorPortal({role}) {
  const [mode,setMode]=useState('unknown'),[step,setStep]=useState(0),[text,setText]=useState(''),[file,setFile]=useState(''),[error,setError]=useState(''),[records,setRecords]=useState([]),[showTips,setShowTips]=useState(true);

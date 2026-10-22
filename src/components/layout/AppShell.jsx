@@ -1,3 +1,4 @@
+import {recordGuideAction} from '@/lib/guideProgress';
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Menu, X, RotateCcw, Play, Database } from 'lucide-react';
@@ -33,6 +34,10 @@ export default function AppShell() {
 
   useEffect(() => {
     setNavOpen(false);
+    if (sessionStorage.getItem('rgc.role') !== 'management') return;
+    const actions={'/dashboard':'dashboardOpened','/scanners':'scannersOpened','/evidence':'evidenceOpened','/investigations':'investigationsOpened'};
+    const action=actions[location.pathname] || (location.pathname.startsWith('/packages/')?'packageOpened':null);
+    if(action)recordGuideAction('management',action);
   }, [location.pathname]);
 
   async function handleReset() {
@@ -124,6 +129,11 @@ export default function AppShell() {
 
             <div className="flex-1" />
 
+            {sessionStorage.getItem('rgc.role') === 'management' && (
+              <Link to="/view/management" className="rounded border border-primary px-3 py-2 text-xs font-semibold text-primary">
+                Return to management walkthrough
+              </Link>
+            )}
             <Link
               to="/guided-demo"
               className="inline-flex items-center gap-1.5 rounded-md bg-primary px-2.5 py-1.5 text-[11px] font-semibold text-primary-foreground transition-opacity hover:opacity-90"

@@ -11,6 +11,7 @@ import { synchronizeEvent, SYNC_STATUS } from '../../shared/syncEngine.ts';
 import { readStore, writeStore, recordActivity, listAll, badRequest, nowIso } from '../../shared/access.ts';
 
 import { LIVE_SCENARIOS, evidenceReport } from '../../shared/liveScenarios.ts';
+import {makeCustomerDoorbellClip,makeDeliveryComparisonClip,doorbellDefaultEvent,doorbellIdentity} from '../../shared/customerDoorbellProfiles.js';
 
 const SCENES = {
   conveyor: 'Inbound induction line',
@@ -86,6 +87,174 @@ export default async function (req) {
     const ctx = await loadContext(base44, demoSessionId);
     const findEvent = (id) => ctx.events.find((e) => e.id === id);
     const findShipment = (tn) => ctx.shipments.find((s) => s.tracking_number === tn);
+
+
+    // A customer submits a fictional issue to this app's management queue, never to a carrier.
+    // Only known simulated shipments are accepted. Idempotency prevents double submissions.
+    if (action === 'nameCustomerPackage') {
+      const shipment = findShipment(String(payload.tracking_number || ''));
+      if (!shipment) return badRequest('Choose a paired sample package before naming it.');
+      const nickname = String(payload.package_nickname || '').trim();
+      if (nickname.length > 60 || /[<>\x00-\x1f]/.test(nickname)) return badRequest('Package nickname must be at most 60 readable characters.');
+      const saved = await store.Shipment.update(shipment.id, { package_nickname: nickname });
+      await recordActivity(base44, { demo_session_id: demoSessionId, actor: 'demo_customer', action: 'Package nickname updated', entity_type: 'Shipment', entity_ref: shipment.tracking_number, detail: nickname ? 'An optional nickname was saved for this sample shipment.' : 'Optional nickname cleared.', category: 'customer' });
+      return Response.json({ ok: true, outcome: 'package_named', shipment: saved });
+    }
+
+    // Persist the fictional customer's demo sharing preference. This is NOT provider
+    // authorization or a credential and must never be used to fetch a real camera clip.
+    if (action === 'setCustomerDemoCameraConsent') {
+      const shipment=findShipment(String(payload.tracking_number||''));
+      if(!shipment)return badRequest('Select a paired sample package.');
+      if(typeof payload.enabled!=='boolean')return badRequest('Choose on or off for the fictional camera sharing preference.');
+      const saved=await store.Shipment.update(shipment.id,{
+        demo_camera_sharing_enabled:payload.enabled,
+        demo_camera_consent_updated_at:nowIso()
+      });
+      await recordActivity(base44,{demo_session_id:demoSessionId,actor:'demo_customer',action:'Simulated doorbell sharing preference changed',entity_type:'Shipment',entity_ref:shipment.tracking_number,detail:payload.enabled?'Fictional sample sharing enabled.':'Fictional sample sharing disabled; no footage should be attached.',category:'customer'});
+      return Response.json({ok:true,outcome:'demo_consent_updated',shipment:saved,provider_authorized:false});
+    }
+
+    if (action === 'submitCustomerComplaint') {
+      const shipment = findShipment(String(payload.tracking_number || ''));
+      if (!shipment) return badRequest('Choose a paired sample package before submitting.');
+      const issue = String(payload.issue || '').trim();
+      if (!['Not received','Wrong address','Damaged delivery','Missing after delivery','Other delivery problem'].includes(issue)) return badRequest('Choose a delivery issue.');
+      const detail = String(payload.detail || '').trim();
+      if (detail.length > 1500) return badRequest('Limit details to 1,500 characters.');
+      const key = String(payload.submission_key || '');
+      if (!/^[a-zA-Z0-9_-]{10,80}$/.test(key)) return badRequest('Submission key is missing or invalid.');
+      const duplicates = await listAll(store, 'CustomerComplaint', {demo_session_id: demoSessionId, submission_key: key}, null, 1);
+      if (duplicates.length) return Response.json({ok:true,outcome:'complaint_submitted',report:duplicates[0],already_submitted:true});
+      const submittedAt = nowIso();
+      const reportNumber = 'DEMO-RPT-' + crypto.randomUUID().replace(/-/g, '').slice(0, 10).toUpperCase();
+      const includesEvidence = payload.include_simulated_doorbell === true;
+      if (includesEvidence && (payload.simulated_sharing_consent !== true || shipment.demo_camera_sharing_enabled === false))
+        return badRequest('Simulated camera sharing is disabled for this package. Enable the fictional preference or submit without footage.');
+      const doorbellEventKey = String(payload.doorbell_event_key || doorbellDefaultEvent(shipment));
+      const providedStart=String(payload.reported_window_start||'');
+      const providedEnd=String(payload.reported_window_end||'');
+      const hasBothWindowFields=Boolean(providedStart&&providedEnd);
+      if(Boolean(providedStart)!==Boolean(providedEnd))return badRequest('Provide both delivery-window times.');
+      if(hasBothWindowFields&&(!Number.isFinite(Date.parse(providedStart))||!Number.isFinite(Date.parse(providedEnd))||Date.parse(providedEnd)<=Date.parse(providedStart)))
+        return badRequest('Invalid delivery window times.');
+      if(includesEvidence&&doorbellEventKey==='disputed_window'&&hasBothWindowFields&&Date.parse(providedEnd)-Date.parse(providedStart)!==7200000)
+        return badRequest('The simulated compressed delivery window must cover exactly two hours.');
+      const selectedDoorbell = makeCustomerDoorbellClip(shipment, ctx.events, doorbellEventKey,hasBothWindowFields?{start:providedStart,end:providedEnd}:null);
+      if (includesEvidence && !selectedDoorbell) return badRequest('No paired simulated doorstep event is available for this package. Submit without footage.');
+      let clipKey = '';
+      let comparisonClipKey = '';
+      const claimedDropoffClip = includesEvidence ? makeDeliveryComparisonClip(shipment, ctx.events) : null;
+      if (includesEvidence) {
+        clipKey = 'CLIP-CUSTOMER-' + crypto.randomUUID().replace(/-/g,'').slice(0,12).toUpperCase();
+        await store.VideoClip.create({
+          demo_session_id: demoSessionId,
+          clip_key: clipKey,
+          title: selectedDoorbell.title,
+          scene: selectedDoorbell.scene,
+          camera_id: selectedDoorbell.camera_id,
+          facility: 'Fictional customer doorstep · illustrative only',
+          scenario_key: shipment.scenario_key,
+          tracking_number: shipment.tracking_number,
+          package_dimensions: shipment.dimensions || '',
+          doorway_key: selectedDoorbell.doorway_key,
+          camera_view_role: selectedDoorbell.camera_view_role,
+          window_compressed: selectedDoorbell.window_compressed,
+          motion_events: selectedDoorbell.motion_events||[],
+          source_window_start: selectedDoorbell.source_window_start || '',
+          source_window_end: selectedDoorbell.source_window_end || '',
+          doorbell_event_key: selectedDoorbell.doorbell_event_key,
+          evidence_provenance: selectedDoorbell.evidence_provenance,
+          source_label: selectedDoorbell.source_label,
+          device_attribution: 'Synthetic camera dramatization; NO real device paired',
+          evidence_kind: 'scene_reconstruction',
+          recorded_start: selectedDoorbell.recorded_start,
+          recorded_end: selectedDoorbell.recorded_end,
+          duration_seconds: selectedDoorbell.duration_seconds,
+          description: selectedDoorbell.description,
+          generated_sample: true,
+          uploaded: false,
+          hue: 195
+        });
+      }
+      if (claimedDropoffClip) {
+        comparisonClipKey='CLIP-COURIER-COMPARE-'+crypto.randomUUID().replace(/-/g,'').slice(0,10).toUpperCase();
+        await store.VideoClip.create({
+          ...claimedDropoffClip,
+          demo_session_id:demoSessionId,
+          clip_key:comparisonClipKey,
+          facility:'Fictional alternate customer address',
+          device_attribution:'Invented carrier drop-off comparison view; NOT verified courier media',
+          uploaded:false,hue:165
+        });
+      }
+      const report = await store.CustomerComplaint.create({
+        demo_session_id: demoSessionId,
+        report_number: reportNumber,
+        submission_key: key,
+        tracking_number: shipment.tracking_number,
+        package_nickname: String(shipment.package_nickname || ''),
+        issue,
+        detail,
+        reported_window_start:providedStart,reported_window_end:providedEnd,
+        status: 'submitted_to_management',
+        submitted_at: submittedAt,
+        evidence_clip_key: clipKey,
+        comparison_clip_key: comparisonClipKey,
+        evidence_received: includesEvidence,
+        demo_sharing_consent:includesEvidence,
+        evidence_kind: includesEvidence ? 'simulated_doorbell_reconstruction' : 'none',
+        evidence_note: includesEvidence
+          ? 'Management received a package-matched, playable simulated doorbell '+doorbellEventKey+' event. '+selectedDoorbell.description+(comparisonClipKey?' A separate FICTIONAL claimed courier drop-off at a different entrance is provided for visual comparison.':'')+' Not Ring footage. Synthetic timestamps correspond to fictional demo events.'
+          : 'No camera evidence included.',
+        external_submission: false
+      });
+      const caseNumber = 'CASE-CUST-' + reportNumber.slice(-10);
+      await store.Investigation.create({
+        demo_session_id: demoSessionId, case_number: caseNumber,
+        tracking_number: shipment.tracking_number, scenario_key: shipment.scenario_key,
+        title: 'Customer report: ' + issue, category: 'Customer-submitted delivery discrepancy',
+        priority: 'medium', status: 'open', opened_at: submittedAt,
+        opened_by: 'demo_customer', assigned_to: 'Management demonstration queue',
+        summary: 'Fictional customer report ' + reportNumber + '. Review scans, address and available evidence before concluding what happened.',
+        evidence_summary: includesEvidence ? 'Simulated expected doorway '+clipKey+(comparisonClipKey?' compared with a separate fictional courier drop-off view '+comparisonClipKey:'')+'. Neither is actual device evidence.' : 'No footage submitted.',
+        recommended_actions: ['Compare the package tracking timeline with scan timestamps.', 'Review the submitted scene and its simulated provenance.', 'Confirm address, last physical custody and any exception before follow-up.']
+      });
+      if (shipment.investigation_status === 'none') await store.Shipment.update(shipment.id, {investigation_status: 'open'});
+      await recordActivity(base44, {demo_session_id: demoSessionId,actor:'demo_customer',action:'Customer complaint submitted to management',entity_type:'CustomerComplaint',entity_ref:reportNumber,detail:'Package '+shipment.tracking_number+'; simulated doorstep scene '+(includesEvidence?'received':'not included')+'. No external filing.',category:'customer'});
+      return Response.json({ok:true,outcome:'complaint_submitted',report,case_number:caseNumber,internal_only:true});
+    }
+
+    // Management can enter observed entrance attributes and a qualified assessment.
+    // Comparison is never treated as an automatic proof of misdelivery.
+    if (action === 'reviewDeliveryLocation') {
+      const reportNo=String(payload.report_number||'');
+      const rows=await listAll(store,'CustomerComplaint',{demo_session_id:demoSessionId,report_number:reportNo},null,1);
+      const report=rows[0];
+      if(!report) return badRequest('Customer report not found in this demo session.');
+      const verdict=String(payload.comparison_verdict||'not_determined');
+      if(!['not_determined','appears_to_match','possible_location_mismatch','needs_more_evidence'].includes(verdict))
+        return badRequest('Choose a valid qualified doorway comparison finding.');
+      const allowed=['door_number','door_color','doormat','wall_or_siding','window_position','porch_fixture','parcel_placement','landmark','other'];
+      const factors=Array.isArray(payload.identifying_factors)?payload.identifying_factors:[];
+      if(factors.length>allowed.length||factors.some(x=>!allowed.includes(x)))return badRequest('Choose valid identifying attributes.');
+      const notes=String(payload.investigation_notes||'').trim();
+      if(notes.length>2000||/[\x00-\x08]/.test(notes))return badRequest('Use at most 2,000 readable characters for the investigation notes.');
+      const reviewedAt=nowIso();
+      const updated=await store.CustomerComplaint.update(report.id,{
+        comparison_verdict:verdict,identifying_factors:factors,investigation_notes:notes,
+        comparison_reviewed_at:reviewedAt,status:'under_review'
+      });
+      const caseNumber='CASE-CUST-'+report.report_number.slice(-10);
+      const linked=ctx.cases.find(c=>c.case_number===caseNumber);
+      if(linked)await store.Investigation.update(linked.id,{
+        status:'investigating',
+        findings:'Management review of synthetic demo scenes: '+verdict.replaceAll('_',' ')+'. Visible attributes: '+(factors.join(', ')||'none selected')+'. '+notes,
+        evidence_summary:'Internal visual comparison; fictional camera views are NOT independent evidence of wrong delivery.'
+      });
+      await recordActivity(base44,{demo_session_id:demoSessionId,actor:'demo_management',action:'Doorway comparison reviewed',entity_type:'CustomerComplaint',entity_ref:reportNo,detail:'Qualified status '+verdict+'. '+factors.length+' entrance attributes saved to linked case.',category:'case'});
+      return Response.json({ok:true,outcome:'location_review_saved',report:updated,case_number:caseNumber,internal_only:true});
+    }
 
     if (action === 'saveLiveScenario') {
       const scenario = LIVE_SCENARIOS.find(s => s.key === payload.scenario_key);

@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Play, Pause, Maximize2, RotateCcw, AlertTriangle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import SceneStage from './SceneStage';
+import CustomerDoorbellStage from './CustomerDoorbellStage';
+import {sourceOffsetAtPlayback,activeWindowMotion} from '../../../base44/shared/doorbellWindowMotion.js';
 import { speak } from '@/lib/voice';
 import StatusPill from '@/components/common/StatusPill';
 import { formatClock, formatDateTime, clockString } from '@/lib/format';
@@ -97,10 +99,10 @@ export default function EvidencePlayer({
   clip,
   markers = [],
   initialPosition = 0,
-  trackingNumber,
-  cameraId,
-  eventTime,
-  syncNote,
+  trackingNumber = null,
+  cameraId = null,
+  eventTime = null,
+  syncNote = null,
   height = 'md'
 }) {
   const duration = clip?.duration_seconds || 14;
@@ -181,6 +183,11 @@ export default function EvidencePlayer({
   }, [playing, videoSrc, position]);
 
   const progress = duration > 0 ? position / duration : 0;
+  const currentSourceMs=clip?.window_compressed && Number.isFinite(Date.parse(clip?.source_window_start||'')) && Number.isFinite(Date.parse(clip?.source_window_end||''))
+    ? Date.parse(clip.source_window_start) + sourceOffsetAtPlayback(clip.motion_events,position)*1000
+    : Date.parse(clip?.recorded_start||'') + position*1000;
+  const currentSourceTime=Number.isFinite(currentSourceMs)?new Date(currentSourceMs).toISOString():null;
+  const visibleMotion=clip?.window_compressed?activeWindowMotion(clip?.motion_events,position):null;
   const sourceLabel = clip?.source_label || 'Generated scene reconstruction — not device footage';
   const isReconstruction = !videoSrc;
 
@@ -217,9 +224,10 @@ export default function EvidencePlayer({
           />
         ) : clip && clip.evidence_kind === 'scene_reconstruction' ? (
           <div className={heightClass}>
-            <SceneStage scene={clip?.scene} progress={progress} className="h-full" />
+            {String(clip?.scene || '').startsWith('doorbell_') ? <CustomerDoorbellStage scene={clip.scene} progress={progress} clip={clip} className="h-full" /> : <SceneStage scene={clip?.scene} progress={progress} className="h-full" />}
           </div>
         ) : null}
+        {visibleMotion&&<span className="pointer-events-none absolute bottom-2 left-2 max-w-[90%] rounded bg-black/85 px-2 py-1 text-xs font-bold text-amber-100">SIMULATED MOTION · {visibleMotion.label}</span>}
         {mediaError && <p role="alert" className="p-4 text-sm text-red-300">{mediaError}</p>}
         {clip && clip.evidence_kind !== 'scene_reconstruction' && !videoSrc && !signing && <p role="alert" className="p-4 text-sm text-red-300">Recording unavailable. No replacement scene is being presented as this recording.</p>}
 
@@ -237,7 +245,7 @@ export default function EvidencePlayer({
           <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-2">
             <div className="flex items-center gap-1.5 rounded bg-background/80 px-1.5 py-1 backdrop-blur">
               <span className="h-1.5 w-1.5 rounded-full bg-tone-danger" />
-              <span className="rgc-mono text-[10px] font-medium text-foreground">{formatDateTime(new Date(new Date(clip.recorded_start).getTime()+position*1000).toISOString())}</span>
+              <span className="rgc-mono text-[10px] font-medium text-foreground">{currentSourceTime?formatDateTime(currentSourceTime):'SIMULATED EVENT'}</span>
             </div>
             <div className="rounded bg-background/80 px-1.5 py-1 backdrop-blur">
               <span className="rgc-mono text-[10px] text-muted-foreground">{cameraId || clip.camera_id}</span>
@@ -309,7 +317,7 @@ export default function EvidencePlayer({
             <div className="flex-1" />
 
             <span className="rgc-mono hidden text-[10px] text-muted-foreground sm:inline">
-              {formatClock(clip.recorded_start, position)} PT
+              {currentSourceTime?formatClock(currentSourceTime):'—'} PT
             </span>
 
             <button
@@ -325,7 +333,7 @@ export default function EvidencePlayer({
           <div className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-border/60 pt-2">
             <StatusPill
               tone={isReconstruction ? 'warn' : 'ok'}
-              label={isReconstruction ? 'Scene reconstruction' : 'Recording attached'}
+              label={isReconstruction ? (String(clip?.scene || '').startsWith('doorbell_') ? 'Simulated doorbell video' : 'Scene reconstruction') : 'Recording attached'}
               dot={false}
             />
             <span className="text-[10px] text-muted-foreground">{signing ? 'Preparing recording…' : sourceLabel}</span>
@@ -343,7 +351,7 @@ export default function EvidencePlayer({
             <div>
               <dt className="uppercase tracking-wide text-muted-foreground">Capture window</dt>
               <dd className="rgc-mono truncate text-foreground">
-                {formatClock(clip.recorded_start, 0)}–{formatClock(clip.recorded_start, duration)}
+                {clip.window_compressed?formatClock(clip.source_window_start)+'–'+formatClock(clip.source_window_end):formatClock(clip.recorded_start, 0)+'–'+formatClock(clip.recorded_start, duration)}
               </dd>
             </div>
             <div>

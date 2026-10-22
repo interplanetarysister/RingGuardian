@@ -85,7 +85,7 @@ export default function Scanners() {
 
   const latest = board.events
     .slice()
-    .sort((a, b) => new Date(b.created_date || b.occurred_at) - new Date(a.created_date || a.occurred_at))
+    .sort((a, b) => new Date(b.created_date || b.occurred_at).getTime() - new Date(a.created_date || a.occurred_at).getTime())
     .slice(0, 5);
 
   return (

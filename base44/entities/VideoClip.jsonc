@@ -65,6 +65,62 @@
     },
     "hue": {
       "type": "number"
+    },
+    "tracking_number": {
+      "type": "string"
+    },
+    "package_dimensions": {
+      "type": "string"
+    },
+    "doorbell_event_key": {
+      "type": "string"
+    },
+    "evidence_provenance": {
+      "type": "string"
+    },
+    "doorway_key": {
+      "type": "string"
+    },
+    "camera_view_role": {
+      "type": "string"
+    },
+    "window_compressed": {
+      "type": "boolean"
+    },
+    "source_window_start": {
+      "type": "string"
+    },
+    "source_window_end": {
+      "type": "string"
+    },
+    "motion_events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "playback_start_seconds": {
+            "type": "number"
+          },
+          "playback_end_seconds": {
+            "type": "number"
+          },
+          "source_offset_seconds": {
+            "type": "number"
+          },
+          "source_duration_seconds": {
+            "type": "number"
+          }
+        }
+      }
     }
   },
   "required": [
