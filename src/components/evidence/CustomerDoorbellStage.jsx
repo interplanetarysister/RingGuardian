@@ -121,9 +121,25 @@ function motion(ctx,scene,p,tracking,dims){
  const code=String(tracking||'0000').slice(-4);
  const dimension=parseInt(String(dims||'12'),10);
  const sc=Math.max(.65,Math.min(1.22,(Number.isFinite(dimension)?dimension:12)/15));
+ const handoff=scene==='doorbell_handoff';
  const threshold=scene==='doorbell_delivery';
  const removal=scene==='doorbell_removal';
- if(threshold){
+ if(handoff){
+  // Eight-second direct handoff from the SAME fixed doorbell viewpoint.
+  // The parcel never reaches the floor: it passes from courier to recipient.
+  const arrival=smooth(p/.25),departure=smooth((p-.61)/.33);
+  const courierX=lerp(1035,643,arrival)+departure*425;
+  const recipientArrival=smooth((p-.20)/.18),recipientRetreat=smooth((p-.67)/.30);
+  const recipientX=lerp(295,415,recipientArrival)-recipientRetreat*105;
+  if(p<.93)human(ctx,courierX,438,.86,p*1.9,{carrying:p<.50,bend:0});
+  if(p>.21&&p<.98)human(ctx,recipientX,444,.83,p*1.3,{visitor:true,carrying:p>.50});
+  if(p<.81){
+    // Before half-way point: courier carries the parcel. After: recipient does.
+    const x=p<.48?courierX-76:recipientX+24;
+    const y=p<.48?330:328;
+    parcel(ctx,x,y,sc*.58,code);
+  }
+ }else if(threshold){
   const approach=smooth(p/.23),exit=smooth((p-.39)/.35);
   const x=lerp(1020,610,approach)+exit*460;
   const bending=p>.23&&p<.41 ? Math.sin(Math.PI*clamp((p-.23)/.18))*.8 :0;
@@ -203,7 +219,7 @@ export default function CustomerDoorbellStage({scene, progress=0, clip, classNam
   rect(ctx,0,0,W,H,vignette);
   ctx.fillStyle='#f8f9f6';ctx.font='bold 16px ui-monospace, monospace';ctx.fillText(clip?.camera_view_role==='carrier_claimed_dropoff'?'● SIMULATED COURIER PROOF VIEW':'● SIMULATED CUSTOMER DOORBELL',18,32);
   ctx.font='13px ui-monospace, monospace';
-  ctx.fillText(scene==='doorbell_timelapse'?'FICTIONAL 2-HOUR WINDOW → 8-SECOND SUMMARY':'DEMO REENACTMENT · NOT REAL VIDEO',18,H-22);
+  ctx.fillText(scene==='doorbell_timelapse'?'ILLUSTRATED 2-HOUR WINDOW → 8-SECOND SUMMARY':scene==='doorbell_handoff'?'ILLUSTRATED DIRECT HANDOFF · NO SCAN':'ILLUSTRATED REENACTMENT · NOT CAMERA VIDEO',18,H-22);
   if(scene==='doorbell_timelapse'){
    const start=Date.parse(clip?.source_window_start||clip?.recorded_start||'');
    if(Number.isFinite(start)){
