@@ -26,6 +26,7 @@ import AmazonIntegration from '@/pages/AmazonIntegration';
 import Operations from '@/pages/Operations';
 import CustomerPortal from '@/pages/CustomerPortal';
 import ManagementPortal from '@/pages/ManagementPortal';
+import ManagementWalkthrough from '@/pages/ManagementWalkthrough';
 import LiveEvents from '@/pages/LiveEvents';
 import GuidedAssistant from '@/components/alexa/GuidedAssistant';
 import About from '@/pages/About';
@@ -61,6 +62,7 @@ const AuthenticatedApp = () => {
         {['validation','alerts','activity','customer','connections','settings','monitoring'].map(path=><Route key={path} path={'/'+path} element={<Operations/>}/>)}
         <Route path="/customer-report" element={<CustomerPortal />} />
         <Route path="/management" element={<ManagementPortal />} />
+        <Route path="/management/walkthrough" element={<ManagementWalkthrough />} />
         <Route path="/live-events" element={<LiveEvents />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/packages" element={<Packages />} />
