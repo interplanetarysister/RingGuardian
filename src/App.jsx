@@ -27,6 +27,7 @@ import Operations from '@/pages/Operations';
 import CustomerPortal from '@/pages/CustomerPortal';
 import ManagementPortal from '@/pages/ManagementPortal';
 import ManagementWalkthrough from '@/pages/ManagementWalkthrough';
+import WearablePairing from '@/pages/WearablePairing';
 import LiveEvents from '@/pages/LiveEvents';
 import GuidedAssistant from '@/components/alexa/GuidedAssistant';
 import About from '@/pages/About';
@@ -63,6 +64,7 @@ const AuthenticatedApp = () => {
         <Route path="/customer-report" element={<CustomerPortal />} />
         <Route path="/management" element={<ManagementPortal />} />
         <Route path="/management/walkthrough" element={<ManagementWalkthrough />} />
+        <Route path="/management/pairing" element={<WearablePairing />} />
         <Route path="/live-events" element={<LiveEvents />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/packages" element={<Packages />} />
