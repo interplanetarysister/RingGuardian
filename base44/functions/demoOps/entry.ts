@@ -90,7 +90,7 @@ export default async function (req) {
       if (typeof payload.run_id !== 'string' || !/^[a-f0-9-]{36}$/i.test(payload.run_id)) return badRequest('A valid run identifier is required.');
       const started = Date.parse(payload.started_at);
       if (!Number.isFinite(started) || started > Date.now() || started < Date.now() - 86400000) return badRequest('Start or replay this event before saving it.');
-      if (Date.now() < started + scenario.duration * 1000 - 500 && payload.completed !== true) return badRequest('Wait for the simulated event to finish.');
+      if (Date.now() < started + scenario.duration * 1000 - 500 || payload.completed !== true) return badRequest('Wait for the simulated event to finish.');
       // The operator can replay against an existing sample or create a separate synthetic
       // package. Never create real courier records from the simulator.
       const createNew = payload.package_mode === 'new';
@@ -142,7 +142,7 @@ export default async function (req) {
         evidence_source: 'Local synthetic simulation', note: scenario.finding
       });
       let caseRecord = ctx.cases.find(c => c.tracking_number === tracking);
-      const report = evidenceReport(scenario,{id:payload.run_id,started_at:payload.started_at});
+      const report = {...evidenceReport(scenario,{id:payload.run_id,started_at:payload.started_at}),tracking_number:tracking};
       if (scenario.issue) {
         const patch = {status:'investigating',findings:scenario.finding,evidence_summary:JSON.stringify(report),
           recommended_actions:['Review the matching simulated interval','Verify the physical parcel location and truck assignment','Keep the evidence bundle with the report','Use official carrier support for real shipment issues']};
