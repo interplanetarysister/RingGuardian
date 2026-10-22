@@ -1,6 +1,6 @@
 // All recorded timestamps are displayed in the demonstration's facility time zone
 // (US Pacific), so a fixture stamped 14:02:11 always renders as 14:02:11 regardless of
-// where the judge is sitting.
+// where the person reviewing the application is located.
 
 export const DEMO_TZ = 'America/Los_Angeles';
 
