@@ -118,6 +118,7 @@ export default function RingIntegration() {
         Live or Playground mode requires a successful authenticated device API call. Synthetic camera events and hypothetical wearables are demonstration assets, not real Ring hardware footage.
       </div>
 
+      <div className="flex flex-col gap-0 [&>*]:rounded-none [&>*:first-child]:rounded-t-xl [&>*:last-child]:rounded-b-xl [&>*+*]:-mt-[3px]" aria-label="Connected camera investigation sections">
       <div className="grid gap-3 rounded-xl border-[3px] border-yellow-400 bg-card p-4">
         <h2 className="text-lg font-black">1. Connect and select a package</h2>
         <p className="text-sm">Official Ring API: {verifiedLive ? 'Authenticated device discovery succeeded' : live ? 'A backend token is configured but the API has not been verified' : 'No official token configured; use the public replay'}.</p>
@@ -147,6 +148,7 @@ export default function RingIntegration() {
           <Link to="/view/management" className="rounded-lg border-2 border-teal-500 px-4 py-3 text-sm font-bold">Open management review →</Link>
         </div>
         <p className="text-xs text-muted-foreground">The official live stream is view-only and not filed as demo evidence. Package evidence in this workflow is clearly labelled synthetic.</p>
+      </div>
       </div>
       <div className="grid gap-4 xl:grid-cols-[1fr_1.15fr]">
         <div className="space-y-4">
