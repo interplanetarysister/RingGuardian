@@ -57,8 +57,8 @@ export default function RingIntegration() {
     }
   }
 
-  const live = status?.mode === 'live';
-  const verifiedLive = live && devices?.mode === 'live';
+  const live = status?.mode === 'live' || status?.mode === 'playground';
+  const verifiedLive = live && (devices?.mode === 'live' || devices?.mode === 'playground');
   const deviceRows = devices?.payload?.data || [];
   const eventRows = events?.payload?.data || [];
 
@@ -75,7 +75,7 @@ export default function RingIntegration() {
         </div>
         <div className="flex items-center gap-1.5">
           {status ? (
-            <StatusPill tone={live ? 'ok' : 'warn'} label={live ? 'Live credentials' : 'Simulated mode'} />
+            <StatusPill tone={live ? 'ok' : 'warn'} label={status?.mode === 'playground' ? 'Official Playground API' : live ? 'Live credentials' : 'Local simulation'} />
           ) : (
             <StatusPill tone="muted" label="Checking" />
           )}
@@ -97,7 +97,7 @@ export default function RingIntegration() {
 
       <div className="grid gap-4 xl:grid-cols-[1fr_1.15fr]">
         <div className="space-y-4">
-          <Panel title="Adapter state" subtitle={live ? 'Calls are made against your Ring developer account' : 'Documented response shapes produced locally'}>
+          <Panel title="Adapter state" subtitle={status?.mode === 'playground' ? 'Official Ring Developer Playground API token' : live ? 'Calls use authorized Ring OAuth credentials' : 'Local mock responses only — not official Playground'}>
             {!status ? (
               <div className="h-24 animate-pulse rounded bg-muted/50" />
             ) : (
