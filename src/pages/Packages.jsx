@@ -7,6 +7,7 @@ import EmptyState from '@/components/common/EmptyState';
 import { loadBoard } from '@/lib/board';
 import { SHIPMENT_STATUS, EVIDENCE, CASE_STATUS, meta } from '@/lib/status';
 import { formatTime, formatDate } from '@/lib/format';
+import { packageProfilePath } from '@/lib/packageLinks';
 
 const FILTERS = [
   { key: 'all', label: 'All packages' },
@@ -87,9 +88,9 @@ export default function Packages() {
 
       <Panel dense>
         {!board ? (
-          <div className="space-y-2 p-4">
+          <div className="space-y-2 p-4" aria-label="Loading packages">
             {[0, 1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-12 animate-pulse rounded bg-muted/60" />
+              <div key={i} className="h-16 animate-pulse rounded bg-muted/60" />
             ))}
           </div>
         ) : rows.length === 0 ? (
@@ -99,75 +100,60 @@ export default function Packages() {
             hint="Clear the search or choose a different filter."
             action={
               <button
-                onClick={() => {
-                  setQuery('');
-                  setFilter('all');
-                }}
-                className="rounded-md border border-border px-2.5 py-1 text-[11px] text-foreground"
+                type="button"
+                onClick={() => { setQuery(''); setFilter('all'); }}
+                className="rounded-md border border-border px-3 py-2 text-xs font-semibold text-foreground"
               >
                 Reset filters
               </button>
             }
           />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[860px] text-left">
-              <thead>
-                <tr className="border-b border-border text-[10px] uppercase tracking-wide text-muted-foreground">
-                  <th className="px-4 py-2.5 font-medium">Tracking</th>
-                  <th className="px-4 py-2.5 font-medium">Scenario</th>
-                  <th className="px-4 py-2.5 font-medium">Status</th>
-                  <th className="px-4 py-2.5 font-medium">Evidence</th>
-                  <th className="px-4 py-2.5 font-medium">Last verified scan</th>
-                  <th className="px-4 py-2.5 font-medium">Case</th>
-                  <th className="px-4 py-2.5" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/60">
-                {rows.map((s) => {
-                  const status = meta(SHIPMENT_STATUS, s.status);
-                  const evidence = meta(EVIDENCE, s.evidence_status);
-                  const caseStatus = meta(CASE_STATUS, s.investigation_status);
-                  return (
-                    <tr key={s.id} className="group hover:bg-accent/20">
-                      <td className="px-4 py-3">
-                        <Link to={`/packages/${s.tracking_number}`} className="rgc-mono text-[11px] font-medium text-foreground hover:text-primary">
-                          {s.tracking_number}
-                        </Link>
-                        {s.package_nickname&&<p className="mt-0.5 text-[11px] font-semibold text-primary">{s.package_nickname} (customer nickname)</p>}<p className="mt-0.5 text-[10px] text-muted-foreground">{s.recipient_name} · {s.destination_city}</p>
-                      </td>
-                      <td className="px-4 py-3 text-[11px] text-foreground">{s.scenario_title}</td>
-                      <td className="px-4 py-3">
-                        <StatusPill tone={status.tone} label={status.label} />
-                      </td>
-                      <td className="px-4 py-3">
-                        <StatusPill tone={evidence.tone} label={evidence.label} />
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="rgc-mono text-[11px] text-foreground">{formatTime(s.last_verified_scan_at)}</span>
-                        <span className="ml-1.5 text-[10px] text-muted-foreground">{formatDate(s.last_verified_scan_at)}</span>
-                      </td>
-                      <td className="px-4 py-3">
-                        {s.investigation_status === 'none' ? (
-                          <span className="text-[10px] text-muted-foreground">—</span>
-                        ) : (
-                          <StatusPill tone={caseStatus.tone} label={caseStatus.label} />
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <Link
-                          to={`/packages/${s.tracking_number}`}
-                          className="inline-flex items-center gap-1 text-[10px] text-muted-foreground group-hover:text-primary"
-                        >
-                          Open <ArrowRight className="h-2.5 w-2.5" />
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <ul className="grid gap-3 p-3 md:grid-cols-2" aria-label="Package search results">
+            {rows.map((s) => {
+              const status = meta(SHIPMENT_STATUS, s.status);
+              const evidence = meta(EVIDENCE, s.evidence_status);
+              const caseStatus = meta(CASE_STATUS, s.investigation_status);
+              return (
+                <li key={s.id || s.tracking_number} className="min-w-0">
+                  <Link
+                    to={packageProfilePath(s.tracking_number)}
+                    aria-label={`View package profile for ${s.package_nickname || s.scenario_title || s.tracking_number}, tracking ${s.tracking_number}`}
+                    className="group flex h-full flex-col gap-3 rounded-xl border-2 border-border bg-card p-4 text-foreground transition-colors hover:border-primary hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="break-words text-sm font-bold">
+                          {s.package_nickname || s.scenario_title || 'Package'}
+                        </p>
+                        <p className="rgc-mono mt-1 break-all text-xs text-muted-foreground">{s.tracking_number}</p>
+                      </div>
+                      <ArrowRight aria-hidden="true" className="mt-1 h-5 w-5 shrink-0 text-primary transition-transform group-hover:translate-x-1" />
+                    </div>
+                    {s.package_nickname && s.scenario_title && (
+                      <p className="text-xs text-muted-foreground">{s.scenario_title}</p>
+                    )}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <StatusPill tone={status.tone} label={status.label} />
+                      <StatusPill tone={evidence.tone} label={evidence.label} />
+                      {s.investigation_status !== 'none' && (
+                        <StatusPill tone={caseStatus.tone} label={caseStatus.label} />
+                      )}
+                    </div>
+                    <div className="mt-auto space-y-1 border-t border-border pt-3 text-xs">
+                      <p><span className="text-muted-foreground">Recipient:</span> {s.recipient_name || '—'}</p>
+                      <p><span className="text-muted-foreground">Destination:</span> {s.destination_city || '—'}</p>
+                      <p>
+                        <span className="text-muted-foreground">Last verified scan:</span>{' '}
+                        {s.last_verified_scan_at ? `${formatTime(s.last_verified_scan_at)} · ${formatDate(s.last_verified_scan_at)}` : 'Not recorded'}
+                      </p>
+                    </div>
+                    <span className="text-xs font-bold text-primary">View package profile →</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         )}
       </Panel>
     </div>
