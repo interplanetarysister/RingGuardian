@@ -1,4 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import RingStreamPlayer from '@/components/ring/RingStreamPlayer';
+import { loadBoard } from '@/lib/board';
 import {
   Radio, RefreshCw, Loader2, Wifi, Monitor, Video, Webhook, AlertTriangle,
   Check, ServerCog, KeyRound
@@ -10,9 +13,12 @@ import { percent } from '@/lib/format';
 
 export default function RingIntegration() {
   const [status, setStatus] = useState(null);
+  const [packages, setPackages] = useState([]);
+  const [packageTracking, setPackageTracking] = useState('');
+  const [packageError, setPackageError] = useState('');
   const [devices, setDevices] = useState(null);
   const [events, setEvents] = useState(null);
-  const [session, setSession] = useState(null);
+
   const [selectedDeviceId, setSelectedDeviceId] = useState('');
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
@@ -28,6 +34,15 @@ export default function RingIntegration() {
 
   useEffect(() => {
     loadStatus();
+    let alive = true;
+    loadBoard().then(b => {
+      if (!alive) return;
+      const shipments = b?.shipments || [];
+      setPackages(shipments);
+      const favorite = shipments.find(p => p.scenario_key === 'delivered_but_missing') || shipments[0];
+      setPackageTracking(favorite?.tracking_number || '');
+    }).catch(() => { if (alive) setPackageError('Demo package list is unavailable. Customer view still has its own sample data.'); });
+    return () => { alive = false; };
   }, [loadStatus]);
 
   async function load(kind) {
@@ -36,19 +51,17 @@ export default function RingIntegration() {
     try {
       if (kind === 'devices') {
         const res = await ring({ action: 'devices' });
+        if (!res?.ok) throw new Error(res?.error || 'Ring device discovery failed.');
         setDevices(res);
         const first = res?.payload?.data?.[0]?.id;
         setSelectedDeviceId((previous) => res?.payload?.data?.some((d) => d.id === previous) ? previous : (first || ''));
         setEvents(null);
-        setSession(null);
+
       } else if (kind === 'events') {
         if (!selectedDeviceId) throw new Error('Discover a Ring device first.');
         const res = await ring({ action: 'events', device_id: selectedDeviceId });
+        if (!res?.ok) throw new Error(res?.error || 'Ring event history failed.');
         setEvents(res);
-      } else if (kind === 'whep') {
-        if (!selectedDeviceId) throw new Error('Discover a Ring device first.');
-        const res = await ring({ action: 'whepSession', device_id: selectedDeviceId });
-        setSession(res);
       }
     } catch (err) {
       setError(err?.message || 'The Ring call failed.');
@@ -58,7 +71,7 @@ export default function RingIntegration() {
   }
 
   const live = status?.mode === 'live' || status?.mode === 'playground';
-  const verifiedLive = live && (devices?.mode === 'live' || devices?.mode === 'playground');
+  const verifiedLive = live && devices?.official_api_connection === true && (devices?.mode === 'live' || devices?.mode === 'playground');
   const deviceRows = devices?.payload?.data || [];
   const eventRows = events?.payload?.data || [];
 
@@ -68,14 +81,14 @@ export default function RingIntegration() {
         <div>
           <h1 className="font-heading text-xl font-semibold tracking-tight text-foreground">Ring developer integration</h1>
           <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted-foreground">
-            The Ring-track capability. This adapter calls documented Ring endpoints; when credentials are present it
+            The Ring-track demo and live API surface. The adapter calls Ring endpoints; when credentials are present it
             performs real OAuth and device calls, and otherwise reproduces the documented response shapes locally and
             labels them as simulated.
           </p>
         </div>
         <div className="flex items-center gap-1.5">
           {status ? (
-            <StatusPill tone={live ? 'ok' : 'warn'} label={status?.mode === 'playground' ? 'Official Playground API' : live ? 'Live credentials' : 'Local simulation'} />
+            <StatusPill tone={verifiedLive ? 'ok' : 'warn'} label={verifiedLive ? 'Ring device API verified' : live ? 'Token configured — connection unverified' : 'Fictional replay mode'} />
           ) : (
             <StatusPill tone="muted" label="Checking" />
           )}
@@ -100,6 +113,36 @@ export default function RingIntegration() {
         Live or Playground mode requires a successful authenticated device API call. Synthetic camera events and hypothetical wearables are demonstration assets, not real Ring hardware footage.
       </div>
 
+      <div className="grid gap-3 rounded-xl border-[3px] border-yellow-400 bg-card p-4">
+        <h2 className="text-lg font-black">1. Connect and select a package</h2>
+        <p className="text-sm">Official Ring API: {verifiedLive ? 'Authenticated device discovery succeeded' : live ? 'A backend token is configured but the API has not been verified' : 'No official token configured; use the public replay'}.</p>
+        <div className="flex flex-wrap gap-2 items-end">
+          <button onClick={() => load('devices')} disabled={Boolean(busy)}
+            className="rounded-lg bg-yellow-400 px-4 py-3 text-sm font-black text-black disabled:opacity-40">
+            {busy === 'devices' ? 'Checking…' : 'Test official Ring device discovery'}
+          </button>
+          <span className="text-sm">{verifiedLive ? 'Verified at ' + new Date(devices.verified_at).toLocaleTimeString() : 'Not verified'}</span>
+        </div>
+        {packageError && <p className="text-xs text-orange-500">{packageError}</p>}
+        {packages.length > 0 && <label className="text-sm font-bold">Associated fictional package
+          <select value={packageTracking} onChange={e => setPackageTracking(e.target.value)}
+            className="mt-1 block w-full rounded-lg border-2 border-yellow-400 bg-background p-3">
+            {packages.map(p => <option key={p.tracking_number} value={p.tracking_number}>{p.package_nickname || p.scenario_title || 'Sample package'} · {p.tracking_number}</option>)}
+          </select>
+        </label>}
+        <p className="text-xs text-muted-foreground">A Ring Playground device is not automatically associated with a real customer's package. This selector controls the fictional demo investigation.</p>
+      </div>
+      <RingStreamPlayer key={selectedDeviceId || 'replay'} deviceId={selectedDeviceId} verified={verifiedLive} trackingNumber={packageTracking}/>
+      <div className="space-y-3 rounded-xl border-[3px] border-teal-500 bg-card p-4">
+        <h2 className="text-lg font-black">3. Compare the delivery and submit an investigation</h2>
+        <p className="text-sm">Continue in the existing customer workflow. The paired fictional Ring-style and carrier scenes stay consistent for the selected package; management receives the submitted simulated discrepancy.</p>
+        <div className="flex flex-wrap gap-2">
+          <Link to={'/view/customer' + (packageTracking ? '?tracking=' + encodeURIComponent(packageTracking) : '')}
+            className="rounded-lg bg-teal-500 px-4 py-3 text-sm font-black text-black">Open this package investigation →</Link>
+          <Link to="/view/management" className="rounded-lg border-2 border-teal-500 px-4 py-3 text-sm font-bold">Open management review →</Link>
+        </div>
+        <p className="text-xs text-muted-foreground">The official live stream is view-only and not filed as demo evidence. Package evidence in this workflow is clearly labelled synthetic.</p>
+      </div>
       <div className="grid gap-4 xl:grid-cols-[1fr_1.15fr]">
         <div className="space-y-4">
           <Panel title="Adapter state" subtitle={status?.mode === 'playground' ? 'Official Ring Developer Playground API token' : live ? 'Calls use authorized Ring OAuth credentials' : 'Local mock responses only — not official Playground'}>
@@ -139,7 +182,7 @@ export default function RingIntegration() {
             )}
           </Panel>
 
-          <Panel title="Capabilities exercised" dense>
+          <Panel title="Supported adapter capabilities (not all verified)" dense>
             <ul className="divide-y divide-border/70">
               {(status?.capabilities || []).map((c) => (
                 <li key={c} className="flex items-start gap-2 px-4 py-2">
@@ -160,7 +203,7 @@ export default function RingIntegration() {
 
           <Panel title="Call the adapter" subtitle="Discover an authorized device before requesting its events or live session">
             {devices && <label className="mb-3 block text-xs text-foreground">Selected device
-              <select className="mt-1 w-full rounded border border-border bg-card p-2" value={selectedDeviceId} onChange={e => { setSelectedDeviceId(e.target.value); setEvents(null); setSession(null); }}>
+              <select className="mt-1 w-full rounded border border-border bg-card p-2" value={selectedDeviceId} onChange={e => { setSelectedDeviceId(e.target.value); setEvents(null); }}>
                 {!deviceRows.length && <option value="">No devices found</option>}
                 {deviceRows.map(d => <option key={d.id} value={d.id}>{d.attributes?.name || 'Ring device'} ({d.id})</option>)}
               </select>
@@ -180,35 +223,18 @@ export default function RingIntegration() {
               >
                 {busy === 'events' ? <Loader2 className="h-3 w-3 animate-spin" /> : <Webhook className="h-3 w-3" />} Event history
               </button>
-              <button
-                onClick={() => load('whep')}
-                disabled={Boolean(busy)}
-                className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-[11px] font-medium text-foreground hover:border-primary/50 disabled:opacity-50"
-              >
-                {busy === 'whep' ? <Loader2 className="h-3 w-3 animate-spin" /> : <Video className="h-3 w-3" />} Request live session
-              </button>
+              
             </div>
 
-            {session ? (
-              <div className="mt-2.5 rounded-md border border-border bg-muted/25 p-2.5">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">WHEP session</p>
-                <p className="mt-1 text-[11px] text-foreground">
-                  {session.mode === 'live' ? 'Live session negotiated.' : 'Simulated session descriptor returned.'}
-                </p>
-                <pre className="rgc-scroll mt-1 max-h-[120px] overflow-auto rounded bg-[#070d16] p-2 text-[9px] leading-relaxed text-muted-foreground">
-{session.answer_sdp || JSON.stringify(session.payload?.data?.attributes || {}, null, 2)}
-                </pre>
-                <p className="mt-1 text-[10px] text-muted-foreground">Audio is never requested — Ring live video is video only.</p>
-              </div>
-            ) : null}
+
           </Panel>
         </div>
 
         <div className="space-y-4">
           <Panel
             title="Devices"
-            subtitle={devices ? (devices.mode === 'live' ? 'Returned by the Ring API' : 'Simulated payload') : 'Call device discovery to load'}
-            actions={devices ? <StatusPill tone={devices.mode === 'live' ? 'ok' : 'warn'} label={devices.mode} /> : null}
+            subtitle={devices ? (devices.official_api_connection ? 'Verified response from the Ring API' : 'Fictional locally generated device list') : 'Call device discovery to load'}
+            actions={devices ? <StatusPill tone={devices.official_api_connection ? 'ok' : 'warn'} label={devices.official_api_connection ? 'Authenticated' : 'Fictional'} /> : null}
             dense
           >
             {!devices ? (
@@ -239,7 +265,7 @@ export default function RingIntegration() {
 
           <Panel
             title="Webhook events"
-            subtitle={events ? (events.mode === 'live' ? 'Returned by the Ring API' : 'Simulated event payloads') : 'Call event history to load'}
+            subtitle={events ? (events.mode === 'live' || events.mode === 'playground' ? 'Returned by the Ring API' : 'Fictional event fixtures') : 'Call event history to load'}
             actions={events ? <StatusPill tone={events.mode === 'live' ? 'ok' : 'warn'} label={events.mode} /> : null}
             dense
           >
@@ -287,7 +313,7 @@ export default function RingIntegration() {
       <div className="flex items-start gap-2 rounded-md border border-tone-warn/30 bg-tone-warn/10 p-3">
         <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-tone-warn" />
         <p className="text-[10px] leading-relaxed text-foreground/90">
-          <span className="font-semibold">Track eligibility, stated plainly.</span> {verifiedLive ? 'Device discovery returned a live API response, but a functioning Ring Playground video or physical-device demonstration must still be verified. ' : 'No verified live Ring-device result is shown on this page. The locally generated fixtures do not establish Ring-track eligibility. '} The adapter is real code against
+          <span className="font-semibold">Track eligibility, stated plainly.</span> {verifiedLive ? 'Official API device discovery succeeded. For Ring track eligibility, demonstrate an actual Playground stream or other accepted Ring simulator interaction. ' : 'No verified official Ring API response has been shown. Fictional fixtures alone do not establish Ring-track eligibility. '} The adapter is real code against
           documented Ring endpoints, and an adapter must be tested against the actual authorized provider before claiming a live integration. What is not
           claimed: a Ring customer account is connected, a certification has been completed, or any Ring recording is
           shown. Adding RING_CLIENT_ID, RING_CLIENT_SECRET and RING_REFRESH_TOKEN switches every call above to your own
