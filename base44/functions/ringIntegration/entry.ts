@@ -43,6 +43,7 @@ function credentials() {
     clientId: readSecret('RING_CLIENT_ID'),
     clientSecret: readSecret('RING_CLIENT_SECRET'),
     refreshToken: readSecret('RING_REFRESH_TOKEN'),
+    playgroundToken: readSecret('RING_PLAYGROUND_TOKEN'),
     hmacKey: readSecret('RING_HMAC_KEY'),
     apiBase: readSecret('RING_API_BASE') || DEFAULT_API_BASE
   };
@@ -209,8 +210,11 @@ export default async function (req) {
     const base44 = createClientFromRequest(req);
     const payload = await req.json().catch(() => ({}));
     const creds = credentials();
-    const live = Boolean(creds.clientId && creds.clientSecret && creds.refreshToken);
-    const mode = live ? 'live' : 'simulated';
+    const production = Boolean(creds.clientId && creds.clientSecret && creds.refreshToken);
+    const playground = !production && Boolean(creds.playgroundToken);
+    const live = production || playground;
+    const mode = production ? 'live' : playground ? 'playground' : 'simulated';
+    const acquireToken = async () => production ? (await exchangeRefreshToken(creds)).access_token : creds.playgroundToken;
 
     // ---------------------------------------------------------------- webhook receiver
     // Ring posts motion / device events here. Anyone can reach this endpoint, so
@@ -259,6 +263,8 @@ export default async function (req) {
         ok: true,
         mode,
         credentials_configured: live,
+        official_api_connection: live,
+        token_source: production ? 'oauth_refresh' : playground ? 'developer_playground' : 'none',
         endpoints: {
           token_url: TOKEN_URL,
           api_base: creds.apiBase,
@@ -270,7 +276,7 @@ export default async function (req) {
         rate_limit_rps: 100,
         note: live
           ? 'Live mode. Calls are made against your Ring developer account.'
-          : 'Simulated mode. No Ring developer credentials are configured, so documented response shapes are produced locally and labelled as simulated. Add RING_CLIENT_ID, RING_CLIENT_SECRET and RING_REFRESH_TOKEN to enable live calls.'
+          : 'Simulated mode. No Ring developer credentials are configured, so documented response shapes are produced locally and labelled as simulated. Set RING_PLAYGROUND_TOKEN for official Playground API calls, or provide OAuth client credentials for production. Playground tokens expire after 30 minutes.'
       });
     }
 
@@ -278,20 +284,20 @@ export default async function (req) {
       if (!live) {
         return Response.json({ ok: true, mode: 'simulated', payload: simulatedDevices() });
       }
-      const token = await exchangeRefreshToken(creds);
-      const data = await ringGet(creds, '/v1/devices?include=capabilities,location,status', token.access_token);
-      return Response.json({ ok: true, mode: 'live', payload: data, expires_in: token.expires_in });
+      const token = await acquireToken();
+      const data = await ringGet(creds, '/v1/devices?include=capabilities,location,status', token);
+      return Response.json({ ok: true, mode, payload: data });
     }
 
     if (action === 'events') {
       if (!live) {
         return Response.json({ ok: true, mode: 'simulated', payload: simulatedEvents() });
       }
-      const token = await exchangeRefreshToken(creds);
+      const token = await acquireToken();
       const deviceId = payload.device_id;
       if (!deviceId) return Response.json({ ok: false, error: 'A device id is required for live event history.' }, { status: 400 });
-      const data = await ringGet(creds, '/v1/devices/' + encodeURIComponent(deviceId) + '/events', token.access_token);
-      return Response.json({ ok: true, mode: 'live', payload: data });
+      const data = await ringGet(creds, '/v1/devices/' + encodeURIComponent(deviceId) + '/events', token);
+      return Response.json({ ok: true, mode, payload: data });
     }
 
     if (action === 'whepSession') {
@@ -299,11 +305,11 @@ export default async function (req) {
       if (!live) {
         return Response.json({ ok: true, mode: 'simulated', payload: simulatedWhepSession(deviceId) });
       }
-      const token = await exchangeRefreshToken(creds);
+      const token = await acquireToken();
       const res = await fetch(creds.apiBase + '/v1/devices/' + encodeURIComponent(deviceId) + '/media/streaming/whep/sessions', {
         method: 'POST',
         headers: {
-          Authorization: 'Bearer ' + token.access_token,
+          Authorization: 'Bearer ' + token,
           'Content-Type': 'application/sdp',
           Accept: 'application/sdp, application/json'
         },
@@ -311,8 +317,8 @@ export default async function (req) {
         signal: AbortSignal.timeout(15000)
       });
       const text = await res.text();
-      if (!res.ok) return Response.json({ ok: false, mode: 'live', error: 'Ring returned ' + res.status }, { status: 502 });
-      return Response.json({ ok: true, mode: 'live', answer_sdp: text, audio: false });
+      if (!res.ok) return Response.json({ ok: false, mode, error: 'Ring returned ' + res.status }, { status: 502 });
+      return Response.json({ ok: true, mode, answer_sdp: text, audio: false });
     }
 
     return Response.json({ ok: false, error: 'Unknown action: ' + action }, { status: 400 });
