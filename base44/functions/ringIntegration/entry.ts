@@ -263,7 +263,8 @@ export default async function (req) {
         ok: true,
         mode,
         credentials_configured: live,
-        official_api_connection: live,
+        official_api_connection: false,
+        api_configured: live,
         token_source: production ? 'oauth_refresh' : playground ? 'developer_playground' : 'none',
         endpoints: {
           token_url: TOKEN_URL,
@@ -275,7 +276,7 @@ export default async function (req) {
         capabilities: ['device discovery (JSON:API)', 'device capabilities and status', 'live video via WebRTC / WHEP', 'HMAC-signed motion webhooks with request_id idempotency'],
         rate_limit_rps: 100,
         note: live
-          ? 'Live mode. Calls are made against your Ring developer account.'
+          ? 'Ring credentials are configured; an official API connection must still be established by successful device discovery.'
           : 'Simulated mode. No Ring developer credentials are configured, so documented response shapes are produced locally and labelled as simulated. Set RING_PLAYGROUND_TOKEN for official Playground API calls, or provide OAuth client credentials for production. Playground tokens expire after 30 minutes.'
       });
     }
@@ -296,7 +297,7 @@ export default async function (req) {
       const token = await acquireToken();
       const deviceId = payload.device_id;
       if (!deviceId) return Response.json({ ok: false, error: 'A device id is required for live event history.' }, { status: 400 });
-      const data = await ringGet(creds, '/v1/devices/' + encodeURIComponent(deviceId) + '/events', token);
+      const data = await ringGet(creds, '/v1/history/devices/' + encodeURIComponent(deviceId) + '/events', token);
       return Response.json({ ok: true, mode, payload: data });
     }
 
