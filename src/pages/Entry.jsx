@@ -11,9 +11,9 @@ export default function Entry(){
  const navigate=useNavigate();
  const [introPlaying,setIntroPlaying]=useState(false);
  const introRef=useRef(null);
- useEffect(()=>()=>{introRef.current?.pause();introRef.current=null},[]);
- function playIntro(){stopGuideAudio();setIntroPlaying(true);const voice=new Audio('/audio/amy/judge-intro.wav');voice.playbackRate=getGuideSpeed();voice.preservesPitch=true;introRef.current=voice;voice.onended=()=>setIntroPlaying(false);voice.onerror=()=>setIntroPlaying(false);voice.play().catch(()=>setIntroPlaying(false));}
- function stopIntro(){introRef.current?.pause();introRef.current=null;setIntroPlaying(false)}
+ useEffect(()=>()=>{window.speechSynthesis?.cancel();introRef.current=null},[]);
+ function playIntro(){stopGuideAudio();window.speechSynthesis?.cancel();if(!window.speechSynthesis){setIntroPlaying(false);return;}const voice=new SpeechSynthesisUtterance('Welcome to Ring Guardian. Choose Customer to review a delivery, compare matching evidence and report an issue. Choose Management to trace a package and investigate discrepancies. All sample scenarios are clearly identified.');voice.rate=getGuideSpeed();voice.onend=()=>setIntroPlaying(false);voice.onerror=()=>setIntroPlaying(false);introRef.current=voice;setIntroPlaying(true);window.speechSynthesis.speak(voice);}
+ function stopIntro(){window.speechSynthesis?.cancel();introRef.current=null;setIntroPlaying(false)}
  useEffect(()=>{let alive=true;Promise.all([getAppMode(),base44.auth.me().catch(()=>null)]).then(([m,u])=>{if(alive){setMode(m);setAdmin(u?.role==='admin');}}).catch(()=>{if(alive){setMode('unknown');setError('Could not read the current demonstration mode.');}});return()=>{alive=false}},[]);
  async function change(next){if(!admin)return;setBusy(true);setError('');try{setMode(await setAppMode(next));}catch(e){setError(e?.message||'Could not change demo mode.');}finally{setBusy(false)}}
  function enter(role){stopIntro();try{sessionStorage.setItem('rgc.role',role);}catch{}navigate(role==='customer'?'/view/customer':'/view/management');}
@@ -25,7 +25,7 @@ export default function Entry(){
       <p className="text-xs font-semibold uppercase text-primary">Why Ring Guardian matters</p>
       <p className="mt-2 text-sm leading-relaxed">Security.org’s 2025 report estimated 37 million U.S. packages stolen annually. Tracking updates alone do not always explain what happened. Ring Guardian demonstrates how shipment scans and camera evidence can help teams investigate delivery issues and help customers understand their options.</p>
       <p className="mt-2 text-xs text-muted-foreground">Source: Security.org, 2025 Package Theft Report (survey-based estimate of theft, not all lost shipments). This demo uses fictional package records and does not guarantee recovery, refunds or replacement.</p>
-      <div className="mt-3 flex flex-wrap gap-2"><button type="button" className="rounded bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground" onClick={introPlaying?stopIntro:playIntro}>{introPlaying?'Stop introduction':'Listen to the welcome · Piper Amy'}</button><a href="https://www.security.org/package-theft/annual-report/" target="_blank" rel="noreferrer" className="rounded border px-4 py-2 text-sm">Research source</a></div>
+      <div className="mt-3 flex flex-wrap gap-2"><button type="button" className="rounded bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground" onClick={introPlaying?stopIntro:playIntro}>{introPlaying?'Stop introduction':'Listen to the introduction'}</button><a href="https://www.security.org/package-theft/annual-report/" target="_blank" rel="noreferrer" className="rounded border px-4 py-2 text-sm">Research source</a></div>
       <p className="mt-3 font-semibold">Ready to explore? Start with Customer or Management.</p>
     </section>
     <section className="mb-6 rounded-xl border border-border bg-card p-5" aria-label="Demo control">
@@ -37,10 +37,10 @@ export default function Entry(){
     <div className="grid gap-4 sm:grid-cols-2"><section className="rounded-xl border border-border bg-card p-6"><Package size={30} className="text-primary"/><h2 className="mt-4 text-xl font-semibold">Enter as Customer</h2><p className="mt-2 min-h-20 text-sm text-muted-foreground">Follow your own deliveries, explore package status, and learn how to review missing or incorrect delivery evidence. No management information is shown.</p><button type="button" onClick={()=>enter('customer')} className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 font-semibold text-primary-foreground">Enter Customer <ArrowRight size={18}/></button></section>
     <section className="rounded-xl border border-border bg-card p-6"><Building2 size={30} className="text-primary"/><h2 className="mt-4 text-xl font-semibold">Enter as Management</h2><p className="mt-2 min-h-20 text-sm text-muted-foreground">Explore shipment operations, scans, evidence, exception handling and recovery workflows. Real management actions require authorized sign-in.</p><button type="button" onClick={()=>enter('management')} className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg border border-primary px-4 py-3 font-semibold">Enter Management <ArrowRight size={18}/></button></section></div>
     <section className="mt-6 rounded-xl border-[3px] border-violet-500 bg-card p-5">
-      <h2 className="text-lg font-black">Judges: Ring Developer Playground and package investigation</h2>
-      <p className="mt-2 text-sm">Play an eight-second labelled fictional evidence scene, test real Ring device discovery if the admin has configured a Playground token, and follow one shipment through a customer report and management review.</p>
-      <Link to="/ring" className="mt-3 block rounded-lg bg-violet-600 px-5 py-3 text-center text-sm font-black text-white">Start the Ring integration demonstration →</Link>
-      <p className="mt-2 text-xs text-muted-foreground">Fictional replay is available without Ring hardware or a token. Genuine Ring API testing requires a signed-in administrator.</p>
+      <h2 className="text-lg font-black">Ring camera integration and package investigation</h2>
+      <p className="mt-2 text-sm">Explore how Ring Guardian links package details to camera evidence. Connect an authorized Ring source or review a clearly labelled illustrative scenario, then complete a delivery investigation.</p>
+      <Link to="/ring" className="mt-3 block rounded-lg bg-violet-600 px-5 py-3 text-center text-sm font-black text-white">Explore Ring camera integration →</Link>
+      <p className="mt-2 text-xs text-muted-foreground">Scenario illustrations are available without Ring hardware or a token. Genuine Ring API testing requires a signed-in administrator.</p>
     </section>
     <div className="mt-7 flex flex-wrap items-center justify-center gap-5 text-sm"><Link className="text-primary underline" to="/overview">About Ring Guardian</Link><Link className="text-primary underline" to="/admin">Administrator controls</Link>{mode==='demo'&&<Link className="text-primary underline" to="/live-events">Open simulated events</Link>}</div>
     <p className="mt-7 text-center text-xs text-muted-foreground">Role selection changes the tour, not account privileges. No real camera or delivery account is connected automatically.</p>
