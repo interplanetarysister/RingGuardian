@@ -238,6 +238,46 @@ export const SCENARIOS = [
   }
 ];
 
+// Sixth independent recipient-side incident: handoff occurred, but no final scan.
+// A recipient accepting a package cannot be inferred solely from a graphic scene;
+// the associated simulated evidence is explicitly identified as a dramatization.
+const directHandoffBase = SCENARIOS.find(x => x.scenario_key === 'successful_delivery');
+if (directHandoffBase) {
+  const tracking = 'TBA304711948632';
+  SCENARIOS.push({
+    scenario_key: 'direct_handoff_no_scan',
+    scenario_title: 'Handed directly to recipient — delivery scan missing',
+    shipment: {
+      ...directHandoffBase.shipment,
+      tracking_number: tracking,
+      recipient_name: 'T. Morgan',
+      expected_destination: '5106 Maple Grove Ln, Oakland CA',
+      last_known_location: 'Recipient-side handoff reported; final delivery scan not found',
+      status: 'handoff_scan_missing',
+      last_verified_scan_at: ts(DAY2, '06:31:19'),
+      delivered_at: '',
+      discrepancy_flag: true,
+      discrepancy_reason: 'A direct hand-to-hand delivery is depicted in the fictional camera scene, but the final carrier delivery scan is absent. The handoff must be reviewed independently.',
+      evidence_status: 'partial',
+      investigation_status: 'open',
+      scenario_summary: 'Reported courier-to-recipient handoff with no final delivery scan. Camera portrayal is a scenario illustration, not proof of a physical delivery.'
+    },
+    events: [
+      ...directHandoffBase.events.slice(0, 5).map(e => ({ ...e })),
+      {
+        sequence: 6, event_type: 'delivery',
+        event_label: 'Recipient-side handoff reported; final delivery scan absent',
+        occurred_at: ts(DAY2, '11:12:07'),
+        scanner_id: '', camera_id: 'SIM-CUSTOMER-DOORBELL',
+        employee_id: 'EMP-4519', facility: 'SFO7', vehicle: '',
+        scan_status: 'missing',
+        note: 'Scenario-only witness/camera illustration; no authenticated delivery scan or Ring clip.'
+      }
+    ],
+    case: null
+  });
+}
+
 export const FOOTAGE_REQUEST_SEED = [
   {
     request_id: "REQ-PPI-10021",
