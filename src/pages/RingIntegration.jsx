@@ -13,6 +13,7 @@ export default function RingIntegration() {
   const [devices, setDevices] = useState(null);
   const [events, setEvents] = useState(null);
   const [session, setSession] = useState(null);
+  const [selectedDeviceId, setSelectedDeviceId] = useState('');
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
 
@@ -36,11 +37,17 @@ export default function RingIntegration() {
       if (kind === 'devices') {
         const res = await ring({ action: 'devices' });
         setDevices(res);
+        const first = res?.payload?.data?.[0]?.id;
+        setSelectedDeviceId((previous) => res?.payload?.data?.some((d) => d.id === previous) ? previous : (first || ''));
+        setEvents(null);
+        setSession(null);
       } else if (kind === 'events') {
-        const res = await ring({ action: 'events', device_id: 'ring-dev-88213' });
+        if (!selectedDeviceId) throw new Error('Discover a Ring device first.');
+        const res = await ring({ action: 'events', device_id: selectedDeviceId });
         setEvents(res);
       } else if (kind === 'whep') {
-        const res = await ring({ action: 'whepSession', device_id: 'ring-dev-88213' });
+        if (!selectedDeviceId) throw new Error('Discover a Ring device first.');
+        const res = await ring({ action: 'whepSession', device_id: selectedDeviceId });
         setSession(res);
       }
     } catch (err) {
@@ -51,6 +58,7 @@ export default function RingIntegration() {
   }
 
   const live = status?.mode === 'live';
+  const verifiedLive = live && devices?.mode === 'live';
   const deviceRows = devices?.payload?.data || [];
   const eventRows = events?.payload?.data || [];
 
@@ -145,7 +153,13 @@ export default function RingIntegration() {
             </ul>
           </Panel>
 
-          <Panel title="Call the adapter" subtitle="Each button exercises one documented capability">
+          <Panel title="Call the adapter" subtitle="Discover an authorized device before requesting its events or live session">
+            {devices && <label className="mb-3 block text-xs text-foreground">Selected device
+              <select className="mt-1 w-full rounded border border-border bg-card p-2" value={selectedDeviceId} onChange={e => { setSelectedDeviceId(e.target.value); setEvents(null); setSession(null); }}>
+                {!deviceRows.length && <option value="">No devices found</option>}
+                {deviceRows.map(d => <option key={d.id} value={d.id}>{d.attributes?.name || 'Ring device'} ({d.id})</option>)}
+              </select>
+            </label>}
             <div className="flex flex-wrap gap-1.5">
               <button
                 onClick={() => load('devices')}
@@ -156,7 +170,7 @@ export default function RingIntegration() {
               </button>
               <button
                 onClick={() => load('events')}
-                disabled={Boolean(busy)}
+                disabled={Boolean(busy) || !selectedDeviceId}
                 className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-[11px] font-medium text-foreground hover:border-primary/50 disabled:opacity-50"
               >
                 {busy === 'events' ? <Loader2 className="h-3 w-3 animate-spin" /> : <Webhook className="h-3 w-3" />} Event history
@@ -268,7 +282,7 @@ export default function RingIntegration() {
       <div className="flex items-start gap-2 rounded-md border border-tone-warn/30 bg-tone-warn/10 p-3">
         <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-tone-warn" />
         <p className="text-[10px] leading-relaxed text-foreground/90">
-          <span className="font-semibold">Track eligibility, stated plainly.</span> The adapter is real code against
+          <span className="font-semibold">Track eligibility, stated plainly.</span> {verifiedLive ? 'Device discovery returned a live API response, but a functioning Ring Playground video or physical-device demonstration must still be verified. ' : 'No verified live Ring-device result is shown on this page. The locally generated fixtures do not establish Ring-track eligibility. '} The adapter is real code against
           documented Ring endpoints, and an adapter must be tested against the actual authorized provider before claiming a live integration. What is not
           claimed: a Ring customer account is connected, a certification has been completed, or any Ring recording is
           shown. Adding RING_CLIENT_ID, RING_CLIENT_SECRET and RING_REFRESH_TOKEN switches every call above to your own
