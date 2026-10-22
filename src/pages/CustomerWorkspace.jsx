@@ -16,7 +16,7 @@ import IntegrationPlaceholders from '@/components/common/IntegrationPlaceholders
 import {doorbellChoices,doorbellDefaultEvent,doorbellUnavailable,makeCustomerDoorbellClip,makeDeliveryComparisonClip,findDoorbellEvent,DEMO_CONSENT_NOTICE} from '../../base44/shared/customerDoorbellProfiles.js';
 
 const TYPES=['Not received','Wrong address','Damaged delivery','Missing after delivery','Other delivery problem'];
-const STAGE_TITLES=['Select Package','Compile Details','Gather Evidence','Submit Investigation','Other Carriers'];
+const STAGE_TITLES=['Choose Delivery','Describe the Issue','Review Camera Evidence','Send the Report','Other Delivery Services'];
 const SIMULATED_ACCOUNTS=['Amazon','Gmail','Ring Doorbell','UPS','FedEx','USPS','DHL','OnTrac'];
 const formatStatus=s=>String(s||'').replaceAll('_',' ');
 const dateTimeLocal=value=>{
@@ -62,7 +62,7 @@ export default function CustomerWorkspace(){
    if(active){
      setBoard(data);
      // A selected package from the Ring integration demo remains selected
-     // when the judge opens the customer investigation workflow.
+     // when the customer opens the investigation workflow.
      const requested = new URLSearchParams(window.location.search).get('tracking');
      const linked=(data?.shipments||[]).find(p=>p.tracking_number===requested);
      if(linked){
@@ -176,7 +176,8 @@ export default function CustomerWorkspace(){
     <details className="mt-3 rounded-lg border p-3"><summary className="cursor-pointer font-semibold">Audio preferences</summary><VoicePicker/></details>
    </details>
    <StageProgress titles={STAGE_TITLES} current={stage} done={done}/>
-   <WorkflowStage number={1} title="Select Package" id="customer-stage-1" active={stage===1} done={isDone(1)} locked={stageLocked(1)} onReopen={()=>activate(1)} description="Choose your delivery; you may name it for easier reference.">
+   <div className="flex flex-col gap-0" aria-label="Connected customer workflow stages">
+   <WorkflowStage number={1} title="Choose Delivery" id="customer-stage-1" active={stage===1} done={isDone(1)} locked={stageLocked(1)} onReopen={()=>activate(1)} description="Choose your delivery; you may name it for easier reference.">
     <label className="block text-sm font-bold">Paired tracking record
      <select value={tracking} onChange={e=>selectTracking(e.target.value)} disabled={mode!=='demo'||Boolean(busy)} className="mt-2 w-full rounded-xl border-2 border-yellow-500 bg-background p-3 text-base">
       <option value="">Choose a package</option>{packages.map(p=><option key={p.tracking_number} value={p.tracking_number}>{p.package_nickname?p.package_nickname+' · ':''}{p.tracking_number} · {p.scenario_title||formatStatus(p.status)}</option>)}
@@ -193,7 +194,7 @@ export default function CustomerWorkspace(){
     </label>}
     {mode==='demo'?<button type="button" disabled={!selected} onClick={advancePackage} className="block w-full rounded-lg bg-yellow-400 px-5 py-3 text-base font-black text-[#191919] disabled:opacity-40">Continue to 2. Compile Details →</button>:<p className="text-sm">Live shipment linking needs customer-specific authorization; no demo account credentials are used in live mode.</p>}
    </WorkflowStage>
-   <WorkflowStage number={2} title="Compile Details" id="customer-stage-2" active={stage===2} done={isDone(2)} locked={stageLocked(2)} onReopen={()=>activate(2)} description="Describe the issue and confirm the reported delivery window.">
+   <WorkflowStage number={2} title="Describe the Issue" id="customer-stage-2" active={stage===2} done={isDone(2)} locked={stageLocked(2)} onReopen={()=>activate(2)} description="Describe the issue and confirm the reported delivery window.">
     <div className="flex items-center gap-2"><AlertTriangle size={19}/><strong className="text-sm">What happened?</strong></div>
     <label className="block text-sm font-bold">Type of problem
      <select value={issue} onChange={e=>setIssue(e.target.value)} className="mt-2 w-full rounded-xl border-2 border-orange-500 bg-background p-3 text-base">
@@ -208,10 +209,10 @@ export default function CustomerWorkspace(){
     <p className="text-xs text-muted-foreground">In the demo, a two-hour window is suggested around the fictional delivery confirmation. The eight-second accelerated scene represents those two hours, but cannot verify uninterrupted camera coverage. Times are not verified from a real carrier.</p>
     <button type="button" onClick={advanceDetails} disabled={!issue} className="w-full rounded-lg bg-[#FF5138] px-5 py-3 text-base font-black text-white disabled:opacity-40">Continue to 3. Gather Evidence →</button>
    </WorkflowStage>
-   <WorkflowStage number={3} title="Gather Evidence" id="customer-stage-3" active={stage===3} done={isDone(3)} locked={stageLocked(3)} onReopen={()=>activate(3)} description="Review the paired demo Ring-style footage or choose no footage.">
+   <WorkflowStage number={3} title="Review Camera Evidence" id="customer-stage-3" active={stage===3} done={isDone(3)} locked={stageLocked(3)} onReopen={()=>activate(3)} description="Review the paired demo Ring-style footage or choose no footage.">
     <div className="rounded-xl border-2 border-teal-500 p-3">
      <strong className="text-sm">Paired camera: Ring Doorbell · DEMO LINKED</strong>
-     <p className="mt-1 text-xs text-muted-foreground">Realistic moving doorstep dramatization for {selected?.package_nickname||selected?.scenario_title||'your sample package'} (tracking ending {tracking.slice(-4)}). Every person, porch and camera frame is synthetic, not a real Ring recording.</p>
+     <p className="mt-1 text-xs text-muted-foreground">Illustrated fixed-doorbell-perspective scene for {selected?.package_nickname||selected?.scenario_title||'your sample package'} (tracking ending {tracking.slice(-4)}). Every person, porch and camera frame is synthetic, not a real Ring recording.</p>
      {cameraChoices.length>1&&<label className="mt-3 block text-sm font-bold">Choose the event to watch and attach
       <select value={selectedDoorbellEvent} onChange={e=>{setDoorbellEvent(e.target.value);setFootageReviewed(false)}} className="mt-1 block w-full rounded-lg border-2 border-teal-500 bg-background p-3">
        {cameraChoices.map(c=><option key={c.eventKey} value={c.eventKey}>{c.title}</option>)}
@@ -229,7 +230,7 @@ export default function CustomerWorkspace(){
     {includeFootage&&pairedClip&&<label className="flex items-start gap-3 text-sm"><input type="checkbox" checked={footageReviewed} onChange={e=>setFootageReviewed(e.target.checked)}/> I reviewed the synthetic event and understand compressed sampling alone cannot prove the parcel was never delivered.</label>}
     <button type="button" disabled={includeFootage&&Boolean(pairedClip)&&!footageReviewed} onClick={advanceEvidence} className="w-full rounded-lg bg-[#09B9AC] px-5 py-3 text-base font-black text-[#061614] disabled:opacity-40">Continue to 4. Submit Investigation →</button>
    </WorkflowStage>
-   <WorkflowStage number={4} title="Submit Investigation" id="customer-stage-4" active={stage===4} done={isDone(4)} locked={stageLocked(4)} onReopen={()=>activate(4)} description="Send your report and chosen synthetic evidence to Ring Guardian’s demo management queue.">
+   <WorkflowStage number={4} title="Send the Report" id="customer-stage-4" active={stage===4} done={isDone(4)} locked={stageLocked(4)} onReopen={()=>activate(4)} description="Send your report and chosen synthetic evidence to Ring Guardian’s demo management queue.">
     <div className="rounded-xl border-2 border-green-500/60 bg-background p-3 text-sm space-y-1">
      <p><strong>Package:</strong> {selected?.package_nickname||selected?.scenario_title} · ending {tracking.slice(-4)}</p>
      <p><strong>Problem:</strong> {issue||'Not selected'}</p><p><strong>Time window:</strong> {reportedStart||'Not provided'} to {reportedEnd||'Not provided'}</p>
@@ -251,13 +252,14 @@ export default function CustomerWorkspace(){
     </div>}
    </WorkflowStage>
    {error&&<p role="alert" className="rounded-xl border-2 border-red-500 bg-card p-3 text-sm font-semibold text-red-500">{error}</p>}
-   <WorkflowStage number={5} title="Other Carriers & Reports" id="customer-stage-5" active={stage===5} done={isDone(5)} locked={!otherRoute&&!isDone(4)} optional description="Optional independent route for other delivery providers and downloadable evidence.">
+   <WorkflowStage number={5} title="Other Delivery Services" id="customer-stage-5" active={stage===5} done={isDone(5)} locked={!otherRoute&&!isDone(4)} optional description="Optional independent route for other delivery providers and downloadable evidence.">
     <p className="text-sm font-semibold">You can prepare non-Amazon package evidence even without completing the four-stage Amazon demo.</p>
     <OtherCarrierDeliveries mode={mode}/>
     <details className="rounded-xl border-2 border-violet-500 p-3"><summary className="cursor-pointer text-base font-black">Prepare a police or insurance report (optional)</summary>
      <div className="mt-3"><PoliceEvidenceReport packages={packages} tracking={tracking} issue={issue} detail={detail} mode={mode}/></div>
     </details>
    </WorkflowStage>
+   </div>
    <p className="text-xs text-muted-foreground"><Camera className="mr-1 inline" size={14}/> All connected services and camera footage displayed in demo mode are synthetic. Actual live shipping accounts and Ring recordings require individual authorization and production integrations. <ExternalLink size={13} className="inline"/></p>
   </main>
  </div>;
