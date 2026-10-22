@@ -1,4 +1,4 @@
-// Sessionless MCP Streamable HTTP JSON-RPC endpoint for the Alexa+ hackathon.
+// Sessionless MCP Streamable HTTP JSON-RPC endpoint for Alexa+ integration.
 // Protocol: 2025-11-25. All tools operate on fictional Ring Guardian demo records.
 // Deploying this function does not automatically register a production Alexa+ add-on.
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
