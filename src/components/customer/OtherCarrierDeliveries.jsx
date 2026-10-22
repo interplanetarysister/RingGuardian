@@ -176,6 +176,7 @@ export default function OtherCarrierDeliveries({mode='unknown'}){
    <p className="mt-2 text-xs">For email updates, save or forward a shipping notice to yourself, then paste its tracking details below or choose the exported .eml file. For portal updates, open the carrier link and copy your package status back here.</p>
   </div>
   <StageProgress titles={CARRIER_STAGES} current={phase} done={done}/>
+  <div className="flex flex-col gap-0" aria-label="Connected carrier workflow stages">
   <WorkflowStage number={1} id="carrier-import-1" title="Import Shipment" active={phase===1} done={isDone(1)} locked={locked(1)} onReopen={()=>setPhase(1)} description="Pull from simulated linked accounts or add a shipping notice yourself.">
     {mode==='demo'&&<div className="rounded-xl border-2 border-teal-500 p-3">
       <strong className="block text-sm">Connected demo feeds (simulated)</strong>
@@ -253,6 +254,7 @@ export default function OtherCarrierDeliveries({mode='unknown'}){
    <p className="text-xs text-muted-foreground">No claim number is issued by Ring Guardian, and preparing a ZIP does not submit a complaint or request a replacement.</p>
    <button type="button" onClick={()=>{setDone(prev=>prev.includes(4)?prev:[...prev,4]);setFeedback('All local steps finished. External filing is not verified; check the courier portal for the actual claim status.')}} className="rounded-xl border-[3px] border-green-500 px-4 py-3 text-sm font-bold">I understand that I must file on the carrier website</button>
   </WorkflowStage>
+  </div>
   {feedback&&<p role="status" className="rounded border p-3 text-sm">{feedback}</p>}
  </section>
 }
