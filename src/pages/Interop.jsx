@@ -210,8 +210,8 @@ export default function Interop() {
       <div className="flex items-start gap-2 rounded-md border border-border bg-muted/20 p-3">
         <Info className="mt-0.5 h-3 w-3 shrink-0 text-muted-foreground" />
         <p className="text-[10px] leading-relaxed text-muted-foreground">
-          This is a demonstration contract, not a production integration. Package P.I. and Ring Guardian are separate
-          submissions and have not been certified against each other. No real customer data exists on either side, and
+          This is a demonstration contract, not a production integration. Package P.I. and Ring Guardian are independent applications
+          and their integration has not been verified end to end. No real customer data exists on either side, and
           nothing is released without an explicit investigator decision.
         </p>
       </div>
