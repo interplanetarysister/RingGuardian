@@ -10,6 +10,7 @@ import EvidencePlayer from '@/components/evidence/EvidencePlayer';
 import DoorwayComparison from '@/components/evidence/DoorwayComparison';
 import {getAppMode} from '@/lib/appMode';
 import {loadBoard} from '@/lib/board';
+import {packageProfilePath} from '@/lib/packageLinks';
 import {ops} from '@/lib/demo';
 import {recordGuideAction} from '@/lib/guideProgress';
 import IntegrationPlaceholders from '@/components/common/IntegrationPlaceholders';
@@ -183,10 +184,13 @@ export default function CustomerWorkspace(){
       <option value="">Choose a package</option>{packages.map(p=><option key={p.tracking_number} value={p.tracking_number}>{p.package_nickname?p.package_nickname+' · ':''}{p.tracking_number} · {p.scenario_title||formatStatus(p.status)}</option>)}
      </select>
     </label>
-    {selected&&<><div className="rounded-xl border-2 border-yellow-500/60 p-3 text-sm">
-      <strong>Paired shipment:</strong> {selected.package_nickname||selected.scenario_title||'Sample delivery'}<p>Tracking: {selected.tracking_number}</p><p>Last recorded status: {formatStatus(selected.status)} (fictional)</p>
-      <p className="mt-1 text-xs">Fictional camera and delivery account paired for this demonstration.</p>
-     </div><label className="block text-sm font-bold">Optional package name<input value={nickname} onChange={e=>setNickname(e.target.value)} maxLength={60} placeholder="Birthday present" className="mt-2 w-full rounded-xl border bg-background p-3"/></label>
+    {selected&&<><Link to={packageProfilePath(selected.tracking_number,true)} aria-label={`View package profile for ${selected.package_nickname||selected.scenario_title||selected.tracking_number}`} className="group block rounded-xl border-2 border-yellow-500 bg-card p-4 text-sm text-foreground transition-colors hover:bg-yellow-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+      <span className="block text-base font-black">{selected.package_nickname||selected.scenario_title||'Sample delivery'} <span aria-hidden="true" className="text-yellow-500">↗</span></span>
+      <span className="mt-1 block break-all">Tracking: {selected.tracking_number}</span>
+      <span className="mt-1 block font-bold">Current status: {formatStatus(selected.status)} (fictional)</span>
+      <span className="mt-2 block text-xs text-muted-foreground">Fictional camera and delivery account paired for this demonstration.</span>
+      <span className="mt-2 block font-black text-primary group-hover:underline">View package profile, status &amp; details →</span>
+     </Link><label className="block text-sm font-bold">Optional package name<input value={nickname} onChange={e=>setNickname(e.target.value)} maxLength={60} placeholder="Birthday present" className="mt-2 w-full rounded-xl border bg-background p-3"/></label>
      <button type="button" disabled={Boolean(busy)} onClick={saveNickname} className="rounded-lg border-2 border-yellow-500 px-3 py-2 text-sm font-bold disabled:opacity-40">{busy==='nickname'?'Saving…':'Save optional name'}</button></>}
     {mode==='demo'&&selected&&<label className="flex items-start gap-3 rounded-xl border-2 border-yellow-500/60 bg-card p-3 text-sm">
      <input type="checkbox" checked={demoSharingConsent} disabled={Boolean(busy)} onChange={e=>changeDemoConsent(e.target.checked)}/>
