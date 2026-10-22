@@ -1,6 +1,6 @@
 // Ring Guardian Cam — interactive demonstration operations.
 //
-// Every control a judge can press lands here. Each action performs a real write to the
+// Every interactive user action lands here. Each action performs a real write to the
 // fictional demo dataset and returns the resulting records, so the interface can show
 // the consequence rather than a decorative acknowledgement.
 //
@@ -30,7 +30,7 @@ function validSession(id) {
   return typeof id === 'string' && id.length >= 6 && id.length <= 80 && /^[A-Za-z0-9_-]+$/.test(id);
 }
 
-// A judge-triggered scan happens now, so it needs media that covers now. The engine is
+// An operator-triggered scan happens now, so it needs media that covers now. The engine is
 // unchanged — we simply give it a capture window that contains the event, exactly as a
 // live Guardian capture would.
 async function createLiveCapture(store, demoSessionId, cameraId, facility, scene, label) {
