@@ -9,10 +9,10 @@ import {conversationalAnswer,GUARDIAN_MODEL,GUARDIAN_PROVIDER,GUIDE_ENDPOINT} fr
 
 const FLOWS={
  customer:[
-  {title:'1. Select Package — sunshine yellow',instruction:'Find the yellow Select Package section. Choose a simulated delivery already linked to the demo Amazon, Ring and shipping accounts. An optional nickname helps you recognize it. Press Continue to compile details.',action:'I selected a package',path:null},
+  {title:'1. Select Package — sunshine yellow',instruction:'Find the yellow Choose Delivery section. Choose a simulated delivery already linked to the demo Amazon, Ring and shipping accounts. An optional nickname helps you recognize it. Press Continue to compile details.',action:'I selected a package',path:null},
   {title:'2. Compile Details — orange-red',instruction:'In the orange-red Compile Details section, choose the problem and review the carrier-reported delivery window. Add an explanation if needed, then choose Continue to gather evidence.',action:'I compiled the details',path:null},
-  {title:'3. Gather Evidence — turquoise teal',instruction:'In the teal Gather Evidence section, play the Ring-style fictional clip automatically paired with the selected tracking record. Decide whether to include the synthetic video, acknowledge that you reviewed it, then continue.',action:'I reviewed the evidence',path:null},
-  {title:'4. Submit Investigation — grass green',instruction:'Read the green submission summary and press Submit Investigation and Selected Evidence. Check the management receipt after submission. The optional violet Other Carriers stage can import shipping notices and prepare a Word complaint and video ZIP for manual filing.',action:'I submitted the investigation',path:null}
+  {title:'3. Gather Evidence — turquoise teal',instruction:'In the teal Review Camera Evidence section, play the Ring-style fictional clip automatically paired with the selected tracking record. Decide whether to include the synthetic video, acknowledge that you reviewed it, then continue.',action:'I reviewed the evidence',path:null},
+  {title:'4. Send the Report — grass green',instruction:'Read the green submission summary and press Submit Investigation and Selected Evidence. Check the management receipt after submission. The optional violet Other Carriers stage can import shipping notices and prepare a Word complaint and video ZIP for manual filing.',action:'I submitted the investigation',path:null}
  ],
  management:[
   {title:'1. Review Customer Reports — sunshine yellow',instruction:'In the yellow stage, review incoming fictional customer complaints and any synthetic Ring video received. Use I reviewed the incoming demo queue to unlock shipment review.',action:'I reviewed incoming reports',path:null},
