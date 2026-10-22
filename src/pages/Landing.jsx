@@ -75,6 +75,10 @@ export default function Landing() {
               sees what the record cannot tell them.
             </p>
 
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <Link to="/customer-report" className="rounded-lg border border-primary/40 bg-card p-4 hover:border-primary"><span className="block text-sm font-bold">Amazon customer</span><span className="block mt-1 text-xs text-muted-foreground">Prepare a missing-package report and camera evidence</span></Link>
+              <Link to="/management" className="rounded-lg border border-primary/40 bg-card p-4 hover:border-primary"><span className="block text-sm font-bold">Operations management</span><span className="block mt-1 text-xs text-muted-foreground">Wearable cameras, scanners and investigations — demo access only</span></Link>
+            </div>
             <div className="mt-6 flex flex-wrap items-center gap-2">
               <Link
                 to="/dashboard"
