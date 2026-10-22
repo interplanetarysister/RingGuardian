@@ -10,11 +10,14 @@ import InvestigatorActions from '@/components/packages/InvestigatorActions';
 import { loadBoard, eventsFor, clipByKey, caseFor, primaryEvent, markersForClip } from '@/lib/board';
 import { SYNC_STATUS, meta } from '@/lib/status';
 import { formatDateTime, relativeTo } from '@/lib/format';
+import { packageProfileBackPath } from '@/lib/packageLinks';
 
 export default function PackageDetail() {
   const { trackingNumber } = useParams();
   const [searchParams] = useSearchParams();
   const requestedEvent = searchParams.get('event');
+  const backTo = packageProfileBackPath(trackingNumber, searchParams);
+  const backLabel = searchParams.get('from') === 'customer' ? 'Back to selected delivery' : 'Back to packages';
   const [state, setState] = useState({ loading: true, error: '', payload: null });
   const [selectedId, setSelectedId] = useState('');
 
@@ -70,8 +73,8 @@ export default function PackageDetail() {
       <div className="rgc-panel p-5">
         <p className="text-sm font-medium text-foreground">Package not available</p>
         <p className="mt-1 text-xs text-muted-foreground">{state.error}</p>
-        <Link to="/packages" className="mt-3 inline-flex items-center gap-1 text-xs text-primary">
-          <ArrowLeft className="h-3 w-3" /> Back to packages
+        <Link to={backTo} className="mt-3 inline-flex items-center gap-1 text-xs text-primary">
+          <ArrowLeft className="h-3 w-3" /> {backLabel}
         </Link>
       </div>
     );
@@ -84,11 +87,12 @@ export default function PackageDetail() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="min-w-0">
-          <Link to="/packages" className="inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-2.5 w-2.5" /> Packages
+          <Link to={backTo} className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
+            <ArrowLeft className="h-3 w-3" /> {backLabel}
           </Link>
-          <h1 className="rgc-mono mt-1 text-lg font-semibold tracking-tight text-foreground">{shipment.tracking_number}</h1>
-          <p className="text-xs text-muted-foreground">{shipment.scenario_title}</p>
+          <h1 className="mt-1 break-words text-xl font-black tracking-tight text-foreground">{shipment.package_nickname || shipment.scenario_title || 'Package profile'}</h1>
+          <p className="rgc-mono mt-1 break-all text-xs text-muted-foreground">Tracking: {shipment.tracking_number}</p>
+          {shipment.package_nickname && <p className="mt-1 text-xs text-muted-foreground">{shipment.scenario_title}</p>}
         </div>
         {caseRecord ? (
           <Link
@@ -100,6 +104,10 @@ export default function PackageDetail() {
           </Link>
         ) : null}
       </div>
+
+      <Panel title="Package profile — current status and shipment details">
+        <PackageSummary shipment={shipment} camera={camera} scanner={scanner} caseRecord={caseRecord} />
+      </Panel>
 
       <div className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
         <div className="space-y-4">
@@ -153,10 +161,6 @@ export default function PackageDetail() {
         </div>
 
         <div className="space-y-4">
-          <Panel title="Package record">
-            <PackageSummary shipment={shipment} camera={camera} scanner={scanner} caseRecord={caseRecord} />
-          </Panel>
-
           <Panel title="Investigator actions" subtitle="Each action writes to the demonstration database">
             <InvestigatorActions shipment={shipment} caseRecord={caseRecord} onDone={load} />
           </Panel>
