@@ -1,14 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
-import SceneStage from '@/components/evidence/SceneStage';
+import CustomerDoorbellStage from '@/components/evidence/CustomerDoorbellStage';
 import { ring } from '@/lib/demo';
 
 /**
  * Two explicit evidence sources:
  * - official authenticated Ring API/WebRTC live view (admin only)
- * - fictional eight-second scene reconstruction for public judging (no token)
+ * - clearly labelled fictional eight-second scene illustration (no token)
  * The two are never represented as interchangeable recordings.
  */
-export default function RingStreamPlayer({ deviceId, verified, trackingNumber }) {
+export default function RingStreamPlayer({ deviceId, verified, trackingNumber, demoClip = null }) {
   const videoRef = useRef(null);
   const peerRef = useRef(null);
   const sessionRef = useRef(null);
@@ -104,23 +104,24 @@ export default function RingStreamPlayer({ deviceId, verified, trackingNumber })
       <h2 className="text-lg font-black">2. Watch your camera evidence</h2>
       <p className="text-sm text-muted-foreground">
         {trackingNumber ? 'Paired fictional demo package: ' + trackingNumber + '. ' : ''}
-        The official live Ring API and the fictional replay are separate evidence sources.
+        The Ring API video and the package-specific illustration are separate sources. An unrelated stream is never assigned as proof of a selected shipment.
       </p>
       <div className="overflow-hidden rounded-xl border bg-black">
         <video ref={videoRef} playsInline autoPlay muted controls className={streaming ? 'block aspect-video w-full object-contain' : 'hidden'} aria-label="Authenticated Ring WebRTC live video" />
         {!streaming && (
           <div className="relative">
-            <SceneStage scene="porch" progress={Math.min(1, seconds / 8)} />
+            {demoClip ? <CustomerDoorbellStage scene={demoClip.scene} clip={demoClip} progress={Math.min(1, seconds / 8)}/> :
+              <div className="flex aspect-video items-center justify-center p-8 text-center text-sm text-slate-200">No doorstep event is associated with this package. An unrelated delivery is not shown as evidence.</div>}
             <div className="absolute left-2 top-2 rounded bg-black/80 px-2 py-1 text-xs font-black text-white">
-              FICTIONAL SCENE RECONSTRUCTION — NOT RING VIDEO
+              SCENARIO ILLUSTRATION — NOT CAMERA FOOTAGE
             </div>
           </div>
         )}
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <button type="button" onClick={() => { setSeconds(0); setReplay(false); requestAnimationFrame(() => setReplay(true)); }}
-          className="rounded-lg bg-primary px-4 py-3 text-sm font-bold text-primary-foreground">
-          {replay ? 'Replay from beginning' : 'Play 8-second sample'}
+        <button type="button" disabled={!demoClip} onClick={() => { setSeconds(0); setReplay(false); requestAnimationFrame(() => setReplay(true)); }}
+          className="rounded-lg bg-primary px-4 py-3 text-sm font-bold text-primary-foreground disabled:opacity-40">
+          {replay ? 'Restart illustration' : 'Play matching scenario illustration'}
         </button>
         <button type="button" disabled={!verified || !deviceId || busy} onClick={start}
           className="rounded-lg border-2 border-teal-500 px-4 py-3 text-sm font-bold disabled:opacity-40">
@@ -130,12 +131,12 @@ export default function RingStreamPlayer({ deviceId, verified, trackingNumber })
           className="rounded-lg border px-4 py-3 text-sm font-bold disabled:opacity-40">Stop Ring stream</button>
       </div>
       <p role="status" className="text-xs font-semibold">
-        {streaming ? 'Official Ring API WebRTC video currently playing.' : replay ? 'Playing the fictional 8-second scene.' : 'Fictional sample ready. Ring video requires successful authenticated device discovery.'}
+        {streaming ? 'Official Ring API WebRTC video currently playing.' : replay ? 'Playing the package-matched illustration.' : 'Scenario illustration is separate from Ring video. Live video requires successful authenticated device discovery.'}
         {replay ? ' ' + Math.floor(seconds) + '/8 seconds.' : ''}
       </p>
       {streamError && <p role="alert" className="rounded border border-red-500 p-3 text-sm text-red-400">{streamError}</p>}
       <p className="text-xs text-muted-foreground">
-        Public judging uses scripted evidence. No genuine Ring camera recording is stored, attributed to a package, or submitted automatically.
+        Illustrations are not evidence from a camera. This application does not automatically assign a Ring livestream to a package, and it does not store genuine Ring footage.
       </p>
     </section>
   );
