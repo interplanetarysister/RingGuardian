@@ -119,7 +119,7 @@ export default function RingIntegration() {
         <div className="flex flex-wrap gap-2 items-end">
           <button onClick={() => load('devices')} disabled={Boolean(busy)}
             className="rounded-lg bg-yellow-400 px-4 py-3 text-sm font-black text-black disabled:opacity-40">
-            {busy === 'devices' ? 'Checking…' : 'Test official Ring device discovery'}
+            {busy === 'devices' ? 'Checking…' : live ? 'Test official Ring device discovery' : 'View fictional device fixtures'}
           </button>
           <span className="text-sm">{verifiedLive ? 'Verified at ' + new Date(devices.verified_at).toLocaleTimeString() : 'Not verified'}</span>
         </div>
@@ -201,7 +201,7 @@ export default function RingIntegration() {
             </ul>
           </Panel>
 
-          <Panel title="Call the adapter" subtitle="Discover an authorized device before requesting its events or live session">
+          <Panel title="API diagnostic tools" subtitle="Official device discovery needs administrator sign-in and an unexpired Ring token. Video starts in step 2 above.">
             {devices && <label className="mb-3 block text-xs text-foreground">Selected device
               <select className="mt-1 w-full rounded border border-border bg-card p-2" value={selectedDeviceId} onChange={e => { setSelectedDeviceId(e.target.value); setEvents(null); }}>
                 {!deviceRows.length && <option value="">No devices found</option>}
@@ -264,7 +264,7 @@ export default function RingIntegration() {
           </Panel>
 
           <Panel
-            title="Webhook events"
+            title="Device event history"
             subtitle={events ? (events.mode === 'live' || events.mode === 'playground' ? 'Returned by the Ring API' : 'Fictional event fixtures') : 'Call event history to load'}
             actions={events ? <StatusPill tone={events.mode === 'live' ? 'ok' : 'warn'} label={events.mode} /> : null}
             dense
