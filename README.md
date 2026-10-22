@@ -1,8 +1,38 @@
-# Base44 Project
+# Ring Guardian — Package Evidence and Recovery
 
-Use this repository to run and edit the app locally, then publish changes back through Base44.
+**Amazon 2026 primary track:** Ring (separate from Package P.I.’s Alexa+ entry).
 
-Any change pushed to the repo will also be reflected in the Base44 Builder.
+Ring Guardian demonstrates package-specific simulated doorbell views, same-address scene continuity, an eight-second delivery clip, an eight-second review of a fictional two-hour window including unrelated camera motion, and a side-by-side doorway comparison that saves qualified recovery notes. It also includes a Ring developer API adapter for authenticated device discovery, event history and video-only WebRTC/WHEP sessions.
+
+**Integration status:** The published app and official Ring API/Playground end-to-end call have **not yet been verified**. Fictional video reconstruction is **not** footage recorded by Ring and does not satisfy the Ring-track runtime requirement on its own. A two-hour time-lapse demonstration is not verified continuous video, and it cannot prove non-delivery. Do not conflate the Ring developer adapter with a connected Ring account.
+
+## Reproduce the source checks
+
+Use Node 22 and the Node package manager:
+
+```sh
+npm ci
+npm run typecheck
+npm run lint
+npm run build
+npm test
+node --test scripts/*.test.mjs
+```
+
+The customer-to-management workflow uses server-side Base44 entities and functions; compiling its frontend alone is **not** an end-to-end functional demo. To run the full app, link a developer workspace and run the local backend per the setup instructions below. The app's actual web experience must be verified separately after publication.
+
+## Judges and reviewers
+
+- Customer workflow: Select package → Details → View/compare simulated footage → Submit → confirm receipt.
+- Management workflow: Open customer report → Compare entrances → mark identifying factors → save investigation.
+- Ring adapter: `src/pages/RingIntegration.jsx`, `src/components/ring/RingStreamPlayer.jsx`, and `base44/functions/ringIntegration/entry.ts`. An official test requires valid authorized Ring developer credentials, backend-only storage, and a documented successful device/stream call. Do not use fictional fixtures as evidence of qualification.
+- Simulation sources: `base44/shared/customerDoorbellProfiles.js`, `base44/shared/doorbellWindowMotion.js`. All non-courier motion during the fictional window is included, and real authorized capture must preserve all movements as available, with capture gaps disclosed.
+- [Full simulated evidence contract](docs/DOORBELL-LOCATION-COMPARISON.md)
+- [Official rules](https://amazonappdev2026.devpost.com/rules)
+
+\n## Developer environment and publishing\n\nUse this repository to run and edit the app locally, then publish changes back through Base44.
+
+Changes in this repository and in the app workspace require explicit parity verification. Do not assume a repository push is already published.
 
 ## Prerequisites
 
