@@ -12,6 +12,7 @@ export default function ManagementPortal(){
  <li>Flag questionable loading events for authorized human investigation.</li>
  <li>Preserve original evidence, access history, timestamps and review results.</li>
  </ol></section>
+ <Link className="block rounded-xl border border-primary/50 bg-card p-5 hover:border-primary" to="/management/walkthrough"><span className="block text-lg font-bold">Start guided delivery evidence walkthrough →</span><span className="block text-sm text-muted-foreground mt-1">Follow an employee wearable camera at the loading dock, package scanning and truck loading, then a driver camera with simulated GPS-linked doorstep evidence. Compare correct and wrong address cases and export the investigation.</span></Link>
  <div className="grid sm:grid-cols-2 gap-3">
  <Link className="rounded-xl border p-4 underline" to="/cameras">Camera inventory</Link>
  <Link className="rounded-xl border p-4 underline" to="/scanners">Scan event tracking</Link>
