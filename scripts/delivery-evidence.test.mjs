@@ -1,0 +1,14 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {SAMPLE_ID,SIMULATED_EVENTS,normalizeAddress,classifyDelivery,buildEvidenceReport} from '../src/lib/deliveryEvidence.mjs';
+const base={trackingNumber:SAMPLE_ID,events:SIMULATED_EVENTS,expectedAddress:'120 Sample Lane',observedAddress:'120 Sample Lane',visualAddressConfirmed:true,locationAccuracyMeters:12};
+test('all simulated evidence must refer to one package',()=>assert.ok(SIMULATED_EVENTS.every(e=>e.trackingNumber===SAMPLE_ID&&e.simulation)));
+test('address normalizes common punctuation and casing',()=>assert.equal(normalizeAddress(' 120 Sample,  Lane. '),normalizeAddress('120 SAMPLE LANE')));
+test('same address plus complete chain supports human-reviewed match',()=>assert.equal(classifyDelivery(base).verdict,'address-match-supported'));
+test('different porch address raises suspected misdelivery',()=>assert.equal(classifyDelivery({...base,observedAddress:'118 Sample Lane'}).verdict,'wrong-address-suspected'));
+test('missing wearable custody evidence requires human review',()=>assert.equal(classifyDelivery({...base,events:SIMULATED_EVENTS.filter(e=>e.kind!=='driver-custody')}).verdict,'needs-review'));
+test('truck mismatch cannot pass',()=>assert.equal(classifyDelivery({...base,events:SIMULATED_EVENTS.map(e=>e.kind==='driver-custody'?{...e,truckId:'OTHER'}:e)}).verdict,'needs-review'));
+test('route mismatch cannot pass',()=>assert.equal(classifyDelivery({...base,events:SIMULATED_EVENTS.map(e=>e.kind==='dropoff-observed'?{...e,routeId:'OTHER'}:e)}).verdict,'needs-review'));
+test('location proximity alone is not sufficient',()=>assert.equal(classifyDelivery({...base,visualAddressConfirmed:false,locationAccuracyMeters:1}).verdict,'needs-review'));
+test('missing evidence cannot pass because someone clicked an approval option',()=>assert.equal(classifyDelivery({...base,events:[]}).verdict,'needs-review'));
+test('exports are explicitly simulated and never marked as submitted',()=>{const r=buildEvidenceReport({...base,notes:'Sample'});assert.equal(r.carrierSubmitted,false);assert.equal(r.simulation,true);assert.equal(r.events.length,SIMULATED_EVENTS.length);});
