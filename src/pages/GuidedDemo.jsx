@@ -12,7 +12,7 @@ const STEPS = [
   {
     icon: Radio,
     title: 'Ring developer integration',
-    body: 'Open the Ring adapter, show the documented endpoints it calls, then discover devices and request a live video session. This is the Ring-track capability.',
+    body: 'Open the Ring adapter, show the documented endpoints it calls, then discover devices and request a live video session. This is the Ring connection capability.',
     to: '/ring',
     cta: 'Open Ring adapter'
   },
