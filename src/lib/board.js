@@ -70,7 +70,7 @@ export function caseFor(board, trackingNumber) {
 
 const TYPE_PRIORITY = ['delivery', 'loading', 'handling', 'corrective', 'sorting', 'receiving', 'exception', 'verification', 'departure', 'arrival'];
 
-/** Chooses the event a judge should see first: the most evidential, not simply the first. */
+/** Chooses the most useful evidence event to inspect first. */
 export function primaryEvent(events) {
   if (!events || events.length === 0) return null;
   const withCapture = events.filter((e) => e.video_clip_key);
