@@ -1,10 +1,10 @@
 // Ring Guardian Cam — shared access helpers for backend functions.
 //
 // Access model, stated plainly:
-//   * This application is a public hackathon demonstration with no sign-in.
+//   * This application is a public demonstration with no sign-in.
 //   * Reads are attempted with the caller's app-scoped token first (so normal
 //     entity access rules apply) and fall back to the service role only when no
-//     caller context exists — a public app serving anonymous judges has none.
+//     caller context exists — a public app serving anonymous visitors has none.
 //   * Writes are restricted to the fictional demo dataset through the service role,
 //     because the demo dataset is intentionally shared, disposable and contains no
 //     customer, employee or operational data of any kind.
