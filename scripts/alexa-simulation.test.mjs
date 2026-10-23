@@ -22,6 +22,15 @@ test('package question routes to the selected package profile', () => {
   assert.match(answer.reply, /fictional/);
 });
 
+test('an explicit identifier overrides broad show or list intent', () => {
+  const shown = runPackageLookup('Show package 5063', fixtures);
+  const listedStatus = runPackageLookup('List the status of package 5063', fixtures);
+  assert.equal(shown.tool, 'get_package_status');
+  assert.equal(listedStatus.tool, 'get_package_status');
+  assert.equal(shown.packages.length, 1);
+  assert.equal(listedStatus.route, '/packages/TBA304711915063');
+});
+
 test('unknown packages are not invented', () => {
   const answer = runPackageLookup('Where is package 9999?', fixtures);
   assert.equal(answer.route, '/packages');
