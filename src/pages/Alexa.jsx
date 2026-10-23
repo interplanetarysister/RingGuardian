@@ -111,7 +111,7 @@ export default function Alexa() {
         />
       </div>
 
-      <AlexaSimulatedExperience board={board} />
+      <AlexaSimulatedExperience board={board} onStopNarration={stop} />
 
       {!supported ? (
         <div className="flex items-start gap-2 rounded-md border border-tone-warn/40 bg-tone-warn/10 p-3">
