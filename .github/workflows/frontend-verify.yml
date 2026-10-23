@@ -1,0 +1,41 @@
+name: Verify Ring Guardian frontend
+
+# Intentionally manual-only: no limited GitHub Actions minutes are spent
+# until the repository owner explicitly starts this workflow.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out submitted source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Test
+        run: npm test
+      - name: Build production frontend
+        run: npm run build
+      - name: Archive built web app
+        uses: actions/upload-artifact@v4
+        with:
+          name: ring-guardian-frontend-dist
+          path: dist/
+          if-no-files-found: error
+          retention-days: 1

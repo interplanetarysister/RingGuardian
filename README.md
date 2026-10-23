@@ -1,6 +1,8 @@
 # Ring Guardian — Package Evidence and Recovery
 
-**Amazon 2026 primary track:** Ring (separate from Package P.I.’s Alexa+ entry).
+**Amazon 2026 primary track for this RingGuardian repository:** Alexa+ **simulated experience alternative** (working demonstration must still be independently verified and recorded before entry). The Ring developer integration is supplemental and not currently verified as Ring-track eligible. This does not affect the separate Package P.I. / AmazonHackathon entry.
+
+**Fast submission runbook:** [Alexa+ simulated experience minimum eligibility checklist](docs/HACKATHON-QUICK-SUBMISSION.md). The on-page interactive simulated package assistant uses record-backed tools, contextual conversational guidance, linked shipment profiles, and optional browser narration. It is not an authenticated Echo device or live Ring integration.
 
 Ring Guardian demonstrates package-specific simulated doorbell views, same-address scene continuity, an eight-second delivery clip, an eight-second review of a fictional two-hour window including unrelated camera motion, and a side-by-side doorway comparison that saves qualified recovery notes. It also includes a Ring developer API adapter for authenticated device discovery, event history and video-only WebRTC/WHEP sessions.
 
