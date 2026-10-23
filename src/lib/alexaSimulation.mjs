@@ -3,7 +3,9 @@
 export function runPackageLookup(question, shipments = []) {
   const q = String(question || '').trim().toLowerCase();
   if (!q) return null;
-  const wantsList = /\b(list|show|which|all|available)\b/.test(q) &&
+  // An explicit tracking number takes precedence over broad "show/list" words.
+  const identifier = q.match(/[a-z]*\d[a-z0-9-]{3,}/)?.[0] || q.match(/\b\d{4,}\b/)?.[0];
+  const wantsList = !identifier && /\b(list|show|which|all|available)\b/.test(q) &&
     /\b(packages?|shipments?|deliveries)\b/.test(q);
   if (wantsList) {
     const packages = shipments.map(s => ({
@@ -21,7 +23,7 @@ export function runPackageLookup(question, shipments = []) {
     };
   }
   const isPackageQuestion = /\b(package|parcel|shipment|delivery|tracking|where|status|scanned|scan|received|arrived|missing)\b/.test(q);
-  const identifier = q.match(/[a-z]*\d[a-z0-9-]{3,}/)?.[0] || q.match(/\b\d{4,}\b/)?.[0];
+
   if (!identifier || !isPackageQuestion) return null;
   const match = shipments.find(s => String(s.tracking_number).toLowerCase() === identifier)
     || shipments.find(s => String(s.tracking_number).toLowerCase().endsWith(identifier));
