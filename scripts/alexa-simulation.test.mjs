@@ -31,6 +31,20 @@ test('an explicit identifier overrides broad show or list intent', () => {
   assert.equal(listedStatus.route, '/packages/TBA304711915063');
 });
 
+test('ambiguous tracking suffixes require the full number', () => {
+  const duplicates = [
+    ...fixtures,
+    { tracking_number: 'TBA999999995063', status: 'in_transit' }
+  ];
+  const ambiguous = runPackageLookup('Where is package 5063?', duplicates);
+  assert.equal(ambiguous.tool, 'get_package_status');
+  assert.equal(ambiguous.route, '/packages');
+  assert.deepEqual(ambiguous.packages, []);
+  assert.match(ambiguous.reply, /complete tracking number/i);
+  const exact = runPackageLookup('Status for package TBA304711915063', duplicates);
+  assert.equal(exact.route, '/packages/TBA304711915063');
+});
+
 test('unknown packages are not invented', () => {
   const answer = runPackageLookup('Where is package 9999?', fixtures);
   assert.equal(answer.route, '/packages');
