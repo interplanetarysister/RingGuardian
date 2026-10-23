@@ -12,7 +12,7 @@ export const SIMULATED_EVENTS = Object.freeze([
   { id:'dropoff',trackingNumber:SAMPLE_ID,at:'2026-10-20T10:38:05Z',source:'wearable',cameraId:'RG-D07',routeId:'42',kind:'dropoff-observed',simulation:true },
 ]);
 export function normalizeAddress(value) {
-  return String(value||'').normalize('NFKC').trim().toUpperCase().replace(/[.,#]/g,' ').replace(/\s+/g,' ');
+  return String(value||'').normalize('NFKC').trim().toUpperCase().replace(/[.,#]/g,' ').replace(/\s+/g,' ').trim();
 }
 export function classifyDelivery({expectedAddress,observedAddress,trackingNumber,events,locationAccuracyMeters,visualAddressConfirmed=false}) {
   const reasons=[];
