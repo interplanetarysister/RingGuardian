@@ -15,7 +15,7 @@ const EXAMPLES = [
 
 // Uses actual fictional session records and route-aware conversational tools.
 // The Alexa+ experience itself is simulated using browser text and optional speech.
-export default function AlexaSimulatedExperience({ board }) {
+export default function AlexaSimulatedExperience({ board, onStopNarration }) {
   const [question, setQuestion] = useState('');
   const [result, setResult] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -54,6 +54,7 @@ export default function AlexaSimulatedExperience({ board }) {
         needsConfirmation: 'needsConfirmation' in answer && Boolean(answer.needsConfirmation)
       });
       if (voiceRef.current && speechSupported()) {
+        onStopNarration?.();
         stopSpeaking();
         speak(reply);
       }
