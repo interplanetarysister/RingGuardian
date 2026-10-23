@@ -25,8 +25,15 @@ export function runPackageLookup(question, shipments = []) {
   const isPackageQuestion = /\b(package|parcel|shipment|delivery|tracking|where|status|scanned|scan|received|arrived|missing)\b/.test(q);
 
   if (!identifier || !isPackageQuestion) return null;
-  const match = shipments.find(s => String(s.tracking_number).toLowerCase() === identifier)
-    || shipments.find(s => String(s.tracking_number).toLowerCase().endsWith(identifier));
+  const exact = shipments.find(s => String(s.tracking_number).toLowerCase() === identifier);
+  const suffixMatches = exact ? [] : shipments.filter(s => String(s.tracking_number).toLowerCase().endsWith(identifier));
+  if (!exact && suffixMatches.length > 1) return {
+    tool: 'get_package_status',
+    reply: 'Multiple fictional packages share those final digits. Enter the complete tracking number to see the correct record.',
+    route: '/packages',
+    packages: []
+  };
+  const match = exact || suffixMatches[0];
   if (!match) return { tool: 'get_package_status', reply: 'That number is not in the current fictional session. Open Packages to choose an available delivery.', route: '/packages', packages: [] };
   const status = String(match.status || 'unknown').replaceAll('_', ' ');
   const facility = match.last_known_location || match.current_facility || 'not recorded';
