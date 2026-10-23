@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Check out submitted source
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Set up Node 22
         uses: actions/setup-node@v4
         with:
