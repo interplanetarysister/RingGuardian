@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Loader2, MessageCircle, Volume2 } from 'lucide-react';
 import { conversationalAnswer } from '@/lib/conversationalGuide';
@@ -21,8 +21,10 @@ export default function AlexaSimulatedExperience({ board }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [voice, setVoice] = useState(false);
+  const voiceRef = useRef(false);
+  const [useAI, setUseAI] = useState(false); // External model calls require opt-in.
 
-  async function ask(text = question) {
+  async function ask(text = question, confirm = false) {
     const asked = String(text || '').trim().slice(0, 500);
     if (!asked || busy) return;
     setQuestion(asked);
@@ -30,15 +32,17 @@ export default function AlexaSimulatedExperience({ board }) {
     setError('');
     try {
       // Package questions use recorded data first instead of a generated guess.
-      const toolResult = runPackageLookup(asked, board?.shipments || []);
+      const isAction = /\b(investigate|create (an? )?(investigation|case)|open (an? )?investigation)\b/i.test(asked);
+      const toolResult = confirm || isAction ? null : runPackageLookup(asked, board?.shipments || []);
       const answer = toolResult || await conversationalAnswer(asked, {
         path: '/alexa',
         role: 'management',
-        useAI: true,
+        useAI: useAI && !confirm,
+        confirm,
         tracking: ''
       });
       const reply = answer.reply || 'There is no answer available for that question.';
-      const destination = ('route' in answer ? answer.route : ('to' in answer ? answer.to : null)) || '/packages';
+      const destination = ('route' in answer ? answer.route : ('to' in answer ? answer.to : null)) || null;
       setResult({
         question: asked,
         reply,
@@ -46,9 +50,10 @@ export default function AlexaSimulatedExperience({ board }) {
         tool: 'tool' in answer ? (answer.tool || 'conversational_guide') : 'conversational_guide',
         engine: toolResult ? 'Simulated package-data tool' : ('engine' in answer ? (answer.engine || 'Guide') : 'Guide'),
         modelNotice: 'modelNotice' in answer ? (answer.modelNotice || '') : '',
-        packages: 'packages' in answer && Array.isArray(answer.packages) ? answer.packages : []
+        packages: 'packages' in answer && Array.isArray(answer.packages) ? answer.packages : [],
+        needsConfirmation: 'needsConfirmation' in answer && Boolean(answer.needsConfirmation)
       });
-      if (voice && speechSupported()) {
+      if (voiceRef.current && speechSupported()) {
         stopSpeaking();
         speak(reply);
       }
@@ -112,8 +117,13 @@ export default function AlexaSimulatedExperience({ board }) {
         </div>
       </form>
 
+      <label className="flex items-start gap-2 rounded-lg border-2 border-primary/30 p-3 text-sm text-foreground">
+        <input type="checkbox" checked={useAI} onChange={e => setUseAI(e.target.checked)} />
+        <span><strong>Use optional conversational AI (Cloudflare Workers AI, Meta Llama).</strong> When enabled, your question and brief guide context are sent to Cloudflare for an answer. Do not enter private names, addresses or account information. When disabled, built-in package tools and help still work.</span>
+      </label>
+
       <label className="flex items-center gap-2 text-sm font-semibold text-foreground">
-        <input type="checkbox" checked={voice} disabled={!speechSupported()} onChange={e => { setVoice(e.target.checked); if (!e.target.checked) stopSpeaking(); }} />
+        <input type="checkbox" checked={voice} disabled={!speechSupported()} onChange={e => { voiceRef.current = e.target.checked; setVoice(e.target.checked); if (!e.target.checked) stopSpeaking(); }} />
         <Volume2 aria-hidden="true" className="h-4 w-4" /> Speak answers using this browser
       </label>
 
@@ -142,12 +152,19 @@ export default function AlexaSimulatedExperience({ board }) {
               ))}
             </ul>
           )}
-          <Link
-            to={result.to}
-            className="inline-flex items-center gap-2 rounded-lg border-2 border-primary px-4 py-3 text-sm font-bold text-primary hover:bg-primary/10"
-          >
-            Open the referenced page <ArrowRight aria-hidden="true" className="h-4 w-4" />
-          </Link>
+          {result.needsConfirmation && (
+            <button type="button" disabled={busy} onClick={() => ask(result.question, true)} className="rounded-lg border-2 border-amber-500 px-4 py-3 text-sm font-bold text-foreground hover:bg-amber-500/10 disabled:opacity-40">
+              Confirm this demo investigation
+            </button>
+          )}
+          {result.to && !result.needsConfirmation && (
+            <Link
+              to={result.to}
+              className="inline-flex items-center gap-2 rounded-lg border-2 border-primary px-4 py-3 text-sm font-bold text-primary hover:bg-primary/10"
+            >
+              Open the referenced page <ArrowRight aria-hidden="true" className="h-4 w-4" />
+            </Link>
+          )}
         </div>
       )}
     </section>
