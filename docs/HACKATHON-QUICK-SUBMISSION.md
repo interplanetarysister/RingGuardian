@@ -53,13 +53,16 @@ node --test scripts/alexa-simulation.test.mjs scripts/package-profile.test.mjs
 ```
 
 A repository push or a passing local build alone **does not publish** the Base44
-web application. Publish from the linked Base44 dashboard and then test the
-public URL. Base44 site publishing and actual runtime behavior must be verified
-independently; avoid presenting unverified unpublished code as a live demo.
+web application. Base44 publication is optional for eligibility under the
+Alexa+ simulated-experience route: you can run the app locally and show the
+working interaction in a real screen-recording video. If advertising a public
+site, publish from Base44 and separately verify the URL. Never depict code or
+an unverified deployment as a functioning public app.
 
 ## Manual runtime test — record only if each step works
 
-1. Open the published application and choose the console/management view.
+1. Open the actual running application (published URL or local development
+   environment with the required demo backend) and choose the console/management view.
 2. Open the **Alexa** page at `/alexa`. The simulation must visibly load
    fictional shipments. Use an incognito/unauthenticated browser to confirm
    a first-time viewer can reach it without a paid account.
@@ -74,7 +77,9 @@ independently; avoid presenting unverified unpublished code as a live demo.
 8. If the AI endpoint is unavailable, the built-in tool guide must still
    answer package questions; disclose any AI limitation accurately.
 
-Any failed step is an unresolved release blocker, not a completed check.
+Any failed step requires repair before claiming that behavior works. A hosted
+Base44 release is **not itself** a contest eligibility condition if a running
+local demonstration and the required public video document the project.
 
 ## Video requirements — remaining human action
 
@@ -91,7 +96,7 @@ Any failed step is an unresolved release blocker, not a completed check.
 
 ## Entry checklist
 
-- [ ] Published app works end to end in an actual browser.
+- [ ] Running app works end to end in an actual browser (locally or hosted).
 - [ ] Build, lint, typecheck, and tests pass. Preserve evidence of results.
 - [x] Source includes a true interactive simulation and its source code.
 - [x] Repository has a public open-source license (see LICENSE).
@@ -102,7 +107,7 @@ Any failed step is an unresolved release blocker, not a completed check.
 - [ ] Product feedback provided for **each** tool/API/SDK used, including
       what it did, onboarding, what worked, what did not, and whether to reuse.
 - [ ] Entry submitted **before noon PDT October 23, 2026**.
-- [ ] Keep the repo, app, and recording accessible during the judging period.
+- [ ] Keep the repository, runnable app instructions, and recording accessible during the judging period.
       Freeze submitted materials after the deadline per the organizers.
 
 ## Separate paths — not currently proven
