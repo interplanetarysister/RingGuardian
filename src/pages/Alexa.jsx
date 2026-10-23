@@ -3,6 +3,7 @@ import { ListMusic, Loader2, AlertTriangle, Check } from 'lucide-react';
 import Panel from '@/components/common/Panel';
 import StatusPill from '@/components/common/StatusPill';
 import AlexaDevice from '@/components/alexa/AlexaDevice';
+import AlexaSimulatedExperience from '@/components/alexa/AlexaSimulatedExperience';
 import AnnouncementRow from '@/components/alexa/AnnouncementRow';
 import { loadBoard } from '@/lib/board';
 import { buildAnnouncements } from '@/lib/announcements';
@@ -18,32 +19,6 @@ export default function Alexa() {
   const [speaking, setSpeaking] = useState(false);
   const [briefing, setBriefing] = useState(false);
   const [audioStatus, setAudioStatus] = useState('Tap Enable voice to confirm your browser can speak.');
-  const [mcpState, setMcpState] = useState('Not tested');
-  const [mcpPackages, setMcpPackages] = useState([]);
-  const [mcpMessage, setMcpMessage] = useState('');
-  // Browser speech demo and MCP demonstration are not an authorized Alexa+ device integration.
-  const MCP_URL = 'https://ring-guardian-alexa-mcp.interplanetary-fund.workers.dev/mcp';
-  async function connectMcp() {
-    setMcpState('Connecting'); setMcpMessage('');
-    try {
-      async function call(id, method, params = {}) {
-        const res = await fetch(MCP_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream', 'MCP-Protocol-Version': '2025-11-25' }, body: JSON.stringify({ jsonrpc: '2.0', id, method, params }) });
-        if (!res.ok) throw new Error('MCP returned HTTP ' + res.status);
-        const body = await res.json();
-        if (body.error) throw new Error(body.error.message);
-        return body.result;
-      }
-      const handshake = await call(1, 'initialize', { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'ring-guardian-web', version: '1.0.0' } });
-      if (handshake.protocolVersion !== '2025-11-25') throw new Error('MCP protocol mismatch');
-      const discovered = await call(2, 'tools/list');
-      if (!discovered.tools?.some(t => t.name === 'list_demo_packages')) throw new Error('Package tool missing');
-      const result = await call(3, 'tools/call', { name: 'list_demo_packages', arguments: {} });
-      const packages = JSON.parse(result.content?.find(c => c.type === 'text')?.text || '[]');
-      if (!Array.isArray(packages) || packages.length !== 5) throw new Error('Expected five demo packages');
-      setMcpPackages(packages); setMcpState('Connected — fictional demo');
-      setMcpMessage('Live MCP handshake, discovery and five package retrieval succeeded. Not Amazon Alexa authentication or Ring camera connectivity.');
-    } catch(err) { setMcpState('Connection failed'); setMcpMessage(err.message || String(err)); }
-  }
   const stopRef = useRef(true);
 
   const supported = speechSupported();
@@ -136,6 +111,8 @@ export default function Alexa() {
         />
       </div>
 
+      <AlexaSimulatedExperience board={board} />
+
       {!supported ? (
         <div className="flex items-start gap-2 rounded-md border border-tone-warn/40 bg-tone-warn/10 p-3">
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-tone-warn" />
@@ -155,17 +132,10 @@ export default function Alexa() {
 
       <div role="status" className="rounded-md border border-border bg-card p-3 text-xs leading-relaxed text-foreground">
         <strong>Integration evidence:</strong> This page plays browser-generated speech, not audio from an authenticated Alexa device.
-        The separate Alexa+ MCP endpoint implements simulated package lookup, location, evidence, and walkthrough tools.
-        Live Alexa+ developer registration, account authorization, and official client invocation remain unverified until tested in the Amazon developer environment.
+        The simulated Alexa+ package assistant above executes package-data and conversational tools against fictional demo records.
+        Separately authored MCP and Alexa skill code has not been verified as a deployed, registered Alexa+ add-on or skill.
       </div>
 
-      <div className="rounded-md border border-border bg-card p-3 space-y-2" aria-live="polite">
-        <h2 className="font-semibold text-sm">Live Alexa+ MCP demonstration connection</h2>
-        <p className="text-xs">Status: {mcpState}. Uses scripted fictional packages only. No actual Echo or Ring pairing.</p>
-        <button type="button" className="rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground" onClick={connectMcp}>Connect and verify MCP</button>
-        {mcpMessage && <p className="text-xs">{mcpMessage}</p>}
-        {mcpPackages.length > 0 && <ul className="text-xs space-y-1">{mcpPackages.map(p => <li key={p.package_id}>{p.package_id} · {p.scenario} · {p.status} (simulated)</li>)}</ul>}
-      </div>
       <section className="rounded-lg border-2 border-primary bg-card p-4" aria-label="Audio readiness"><h2 className="font-semibold">Voice for the walkthrough video</h2><p role="status" className="mt-2 text-sm">{audioStatus}</p><button type="button" disabled={!supported||!announcements.length} onClick={()=>playOne(announcements[0])} className="mt-3 rounded bg-primary px-4 py-3 font-semibold text-primary-foreground disabled:opacity-50">Enable voice and hear the first package</button><p className="mt-2 text-xs text-muted-foreground">This is browser speech using the current package record, not audio streamed from an Echo or the official Alexa service. Record with device media sound enabled.</p></section>
       <div className="grid gap-4 xl:grid-cols-[0.85fr_1.15fr]">
         <div className="space-y-4">
