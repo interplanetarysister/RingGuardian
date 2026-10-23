@@ -38,15 +38,15 @@ export default function AlexaSimulatedExperience({ board }) {
         tracking: ''
       });
       const reply = answer.reply || 'There is no answer available for that question.';
-      const destination = answer.route || answer.to || '/packages';
+      const destination = ('route' in answer ? answer.route : ('to' in answer ? answer.to : null)) || '/packages';
       setResult({
         question: asked,
         reply,
         to: destination,
-        tool: answer.tool || 'conversational_guide',
-        engine: toolResult ? 'Simulated package-data tool' : (answer.engine || 'Guide'),
-        modelNotice: answer.modelNotice || '',
-        packages: answer.packages || []
+        tool: 'tool' in answer ? (answer.tool || 'conversational_guide') : 'conversational_guide',
+        engine: toolResult ? 'Simulated package-data tool' : ('engine' in answer ? (answer.engine || 'Guide') : 'Guide'),
+        modelNotice: 'modelNotice' in answer ? (answer.modelNotice || '') : '',
+        packages: 'packages' in answer && Array.isArray(answer.packages) ? answer.packages : []
       });
       if (voice && speechSupported()) {
         stopSpeaking();
